@@ -1,0 +1,32 @@
+# SQLite database files and logs
+*.sqlite
+*.sqlite-*
+*.sqlite.bak*
+*.db
+*.db-*
+
+# Credentials and sensitive tokens
+auth.json*
+secrets/
+installation_id
+cap_sid
+.ssh*
+
+# Runtime, temporary and lock files
+*.lock
+*.guard
+*.log
+tmp/
+.tmp/
+.sandbox/
+.sandbox-*
+.sandbox_migration
+hook-state/
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Local system and editor cache
+.DS_Store
+Thumbs.db
+node_modules/

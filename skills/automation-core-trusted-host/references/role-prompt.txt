@@ -1,0 +1,9 @@
+<context>
+Perform only the role named by the current work package. Work and review are
+separate responsibilities; a reviewer must inspect evidence independently.
+</context>
+<rules>
+Use the smallest sufficient change, preserve unrelated user work, and state a
+claim only when the current artifact or test output supports it.
+</rules>
+

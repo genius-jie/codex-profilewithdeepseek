@@ -1,0 +1,273 @@
+{
+  "schema_version": "codexpp-adapter-verification.v1",
+  "recorded_at": "2026-09-22T22:03:53.666503+00:00",
+  "source_version": "responses-summary-v20-tool-history-batches-v1",
+  "status": "SOURCE_AND_ISOLATED_LIVE_VALIDATED_RELOAD_PENDING",
+  "source_and_tests": [
+    {
+      "path": "C:\\Users\\Administrator\\.cc-switch\\sanitizer\\codex-id-sanitizer-proxy.js",
+      "sha256": "fe4581bf153d6aea2ef3c608663abc8aa679744a68b4a48abe098b9fc19941ce"
+    },
+    {
+      "path": "C:\\Users\\Administrator\\.cc-switch\\sanitizer\\test-kimi-tool-message-name.js",
+      "sha256": "03605b226a73c7b8013bc1bb5ee722d2f8df6585836c164b29f02f1f7e79ace9"
+    },
+    {
+      "path": "C:\\Users\\Administrator\\.cc-switch\\sanitizer\\test-gpt-switch-reasoning-replay.js",
+      "sha256": "6c3578b10fbdf9276d3abe1eca98b078e8f47134c4a772f5c30c65a0bee9ba66"
+    },
+    {
+      "path": "C:\\Users\\Administrator\\.cc-switch\\sanitizer\\test-codex-id-exec-envelope.js",
+      "sha256": "453cb99d08ebf0362ebb3ff6d71e7b6ee267549afa951d6bb0f87b4537a3f6a5"
+    },
+    {
+      "path": "C:\\Users\\Administrator\\.cc-switch\\sanitizer\\test-live-model-switch-history.js",
+      "sha256": "5b2d555375232ef2fa57307be6eeed95c4ba519c294f93b1dd8fe91639086418"
+    },
+    {
+      "path": "C:\\Users\\Administrator\\.cc-switch\\sanitizer\\restart-sanitizer.ps1",
+      "sha256": "a9bd02bee98e1269c39f84ee7a63be66418f51cbc189bf9f22076e992720c70f"
+    },
+    {
+      "path": "C:\\Users\\Administrator\\.codex-plusplus-config\\Start-CodexPlusPlus.ps1",
+      "sha256": "5f65cef870179cb836b6c67cb1167ab32435aec5bc9ab5cc79ade08ddd9945f3"
+    }
+  ],
+  "root_causes": [
+    "Responses parallel calls were split into separate assistant messages; Kimi loses the tool batch context despite all names being present.",
+    "Custom free-form tools became Chat functions with an empty object schema, producing empty {} exec inputs and normal empty outputs.",
+    "item.id and correlation call_id have different roles; call_id is preserved, and legacy transport-only code fields must not reach GPT input."
+  ],
+  "failed_history_shape": {
+    "tool_calls": 25,
+    "tool_results": 25,
+    "unresolved_names": 0,
+    "fixture_contains_user_body": false
+  },
+  "upstream_ab": [
+    {
+      "case": "original_separate_calls",
+      "http": 502,
+      "ms": 12230,
+      "errors": "{\"error\":{\"code\":\"unknown_error\",\"message\":\"type=invalid_request_error The provided messages input is invalid. The error info is [Kimi K3 tool messages need a resolvable tool name: carry `tool`/`name`, or match a preceding assistant tool_call by order.]. [request_id=b598e6f4-0132-43d9-a492-8e000255b348]\",\"type\":\"server_error\"}}",
+      "marker": false
+    },
+    {
+      "case": "grouped_parallel_calls",
+      "http": 200,
+      "ms": 6340,
+      "errors": [],
+      "marker": true
+    }
+  ],
+  "empty_exec_observation": {
+    "thread_id": "01a0c946-3798-73e2-b603-5a8e0667bec1",
+    "recent_empty_inputs": 30,
+    "returned_output": "Script completed; Wall time 0.0 seconds; Output empty",
+    "diagnosis": "empty tool input, not established output-channel damage"
+  },
+  "local_regressions": {
+    "kimi_batch_and_names": {
+      "cases": 8,
+      "exit_code": 0
+    },
+    "gpt_replay_and_identity": {
+      "cases": 2,
+      "exit_code": 0
+    },
+    "exec_envelope_schema_error_cancellation_queue": {
+      "exit_code": 0
+    }
+  },
+  "isolated_live": {
+    "started_at": "2026-09-22T22:00:39.560Z",
+    "port": 57762,
+    "models": [
+      "gpt-6-astra",
+      "kimi-k3",
+      "deepseek-v4-pro",
+      "qwen3.8-max",
+      "gpt-6-astra",
+      "deepseek-v4-pro",
+      "kimi-k3",
+      "qwen3.8-max",
+      "deepseek-v4-pro",
+      "gpt-6-astra",
+      "qwen3.8-max",
+      "kimi-k3",
+      "gpt-6-astra"
+    ],
+    "checks": [
+      {
+        "round": 1,
+        "model": "gpt-6-astra",
+        "from": null,
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_ZNAW8g6qcTk7KDbWix3iZYs8"
+      },
+      {
+        "round": 2,
+        "model": "kimi-k3",
+        "from": "gpt-6-astra",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "ctc_exec_0_72aecd7c"
+      },
+      {
+        "round": 3,
+        "model": "deepseek-v4-pro",
+        "from": "kimi-k3",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "ctc_57b66b0bf4144e94a7cd036c"
+      },
+      {
+        "round": 4,
+        "model": "qwen3.8-max",
+        "from": "deepseek-v4-pro",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_04ef4ea50b46487889a6b557"
+      },
+      {
+        "round": 5,
+        "model": "gpt-6-astra",
+        "from": "qwen3.8-max",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_7R8fZv9zq0t4RsghM5aHEOKk"
+      },
+      {
+        "round": 6,
+        "model": "deepseek-v4-pro",
+        "from": "gpt-6-astra",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "ctc_3a6da1c8233f4069922cc83b"
+      },
+      {
+        "round": 7,
+        "model": "kimi-k3",
+        "from": "deepseek-v4-pro",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "ctc_exec_0_de1434f2"
+      },
+      {
+        "round": 8,
+        "model": "qwen3.8-max",
+        "from": "kimi-k3",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_53181288d4a946ebbf933f99"
+      },
+      {
+        "round": 9,
+        "model": "deepseek-v4-pro",
+        "from": "qwen3.8-max",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "ctc_af159aa333744a52a43257f5"
+      },
+      {
+        "round": 10,
+        "model": "gpt-6-astra",
+        "from": "deepseek-v4-pro",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_DJe386iwEfsBEHlGDUGzw7kK"
+      },
+      {
+        "round": 11,
+        "model": "qwen3.8-max",
+        "from": "gpt-6-astra",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_32c8b534f50a4544901830ae"
+      },
+      {
+        "round": 12,
+        "model": "kimi-k3",
+        "from": "qwen3.8-max",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "ctc_exec_0_23850ad3"
+      },
+      {
+        "round": 13,
+        "model": "gpt-6-astra",
+        "from": "kimi-k3",
+        "http": 200,
+        "tool_executed": true,
+        "call_id": "call_alo8M3Qq2GqbvqzjjPHGI3Sc"
+      }
+    ],
+    "tool_results": [
+      "SWITCH_R1_OK",
+      "SWITCH_R2_OK",
+      "SWITCH_R3_OK",
+      "SWITCH_R4_OK",
+      "SWITCH_R5_OK",
+      "SWITCH_R6_OK",
+      "SWITCH_R7_OK",
+      "SWITCH_R8_OK",
+      "SWITCH_R9_OK",
+      "SWITCH_R10_OK",
+      "SWITCH_R11_OK",
+      "SWITCH_R12_OK",
+      "SWITCH_R13_OK"
+    ],
+    "status": "PASS",
+    "adapter": "responses-summary-v20-tool-history-batches-v1",
+    "affected_history": {
+      "status": "PASS",
+      "items": 97,
+      "http": 200
+    },
+    "final_result_consumed": true,
+    "file_readback": {
+      "status": "PASS",
+      "tool_executed": true,
+      "result_received": true,
+      "utf8": true
+    },
+    "finished_at": "2026-09-22T22:02:19.541Z"
+  },
+  "production_health": {
+    "status": "ok",
+    "proxy": "codex-id-sanitizer",
+    "port": 15740,
+    "adapter": "responses-summary-v19-kimi-tool-name-fallback-v1"
+  },
+  "activation_receipt": {
+    "error": "由于以下错误，无法运行此命令: An error occurred trying to start process 'C:\\Program Files\\PowerShell\\7\\pwsh.exe' with working directory 'D:\\Temp\\codex-sanitizer-reload-20260923'. 操作已被用户取消。",
+    "completed_at": "2026-09-23T05:52:52.2585357+08:00"
+  },
+  "not_observed": [
+    "v20 production service replay",
+    "affected original UI task continued after v20 deployment"
+  ],
+  "preserved": [
+    "D profile paths",
+    "relay auth mode",
+    "ordinary Codex config/auth",
+    "original rollouts",
+    "existing single service/listener ownership"
+  ],
+  "rules": {
+    "parallel_batch": "one assistant tool_calls array",
+    "correlation": "preserve opaque call_id; item.id is independent",
+    "custom_input": "required string envelope, decoded without extra transport fields",
+    "ambiguous_tool_names": "no guessing by declarations order",
+    "exec_empty": "explicit failure, no fabricated success",
+    "verification": "one mixed history, executed bounded tools, last result consumed"
+  },
+  "corrections_to_prior_claims": [
+    "v16-v19 serial five-turn probe used synthetic outputs, so did not prove real tool execution or all switch directions",
+    "history truncation was not supported for the affected 25-call fixture",
+    "Qwen historical balance error is not a current blocker; present live directions passed"
+  ],
+  "docs_reference": "https://developers.openai.com/api/docs/guides/function-calling",
+  "no_second_control_plane": true
+}

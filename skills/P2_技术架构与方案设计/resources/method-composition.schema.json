@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:general-agent-os:method-composition:v1",
+  "title": "Explicit caller input to the stateless General P2 method check",
+  "description": "Metadata lives in each method asset. This schema defines the wire shape, never an index or execution policy. Caller rejects duplicate YAML keys before parsing and validates evidence assertions independently.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "methods", "selected"],
+  "properties": {
+    "schema_version": {"const": "method-composition.v1"},
+    "stage": {"enum": ["design", "plan", "implement", "review", "verify", "deliver"]},
+    "methods": {"type": "array", "items": {"$ref": "#/$defs/method"}},
+    "selected": {"type": "array", "items": {"$ref": "#/$defs/selection"}},
+    "candidates": {"type": "array", "items": {"$ref": "#/$defs/selection"}},
+    "facts": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+    "available": {"type": "array", "items": {"$ref": "#/$defs/available"}}
+  },
+  "$defs": {
+    "text": {"type": "string", "pattern": "\\S"},
+    "version": {"oneOf": [{"type": "integer", "minimum": 1}, {"type": "string", "pattern": "^[^\\s^~*<>=,]+$"}]},
+    "texts": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+    "condition": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["all"], "properties": {"all": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/condition"}}}},
+        {"type": "object", "additionalProperties": false, "required": ["any"], "properties": {"any": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/condition"}}}},
+        {
+          "type": "object", "additionalProperties": false, "required": ["fact", "op", "value"],
+          "properties": {"fact": {"$ref": "#/$defs/text"}, "scope": {"$ref": "#/$defs/text"}, "op": {"enum": ["eq", "in", "exists"]}, "value": {}},
+          "allOf": [
+            {"if": {"properties": {"op": {"const": "in"}}}, "then": {"properties": {"value": {"type": "array", "minItems": 1}}}},
+            {"if": {"properties": {"op": {"const": "exists"}}}, "then": {"properties": {"value": {"type": "boolean"}}}}
+          ]
+        }
+      ]
+    },
+    "reference": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id"],
+      "properties": {"kind": {"enum": ["method", "artifact", "evidence", "capability"]}, "id": {"$ref": "#/$defs/text"}, "version": {"$ref": "#/$defs/version"}, "scope": {"$ref": "#/$defs/text"}, "when": {"$ref": "#/$defs/condition"}},
+      "allOf": [{"if": {"properties": {"kind": {"const": "method"}}}, "then": {"required": ["version"]}}]
+    },
+    "methodReference": {"allOf": [{"$ref": "#/$defs/reference"}, {"properties": {"kind": {"const": "method"}}}]},
+    "evidenceReference": {"allOf": [{"$ref": "#/$defs/reference"}, {"properties": {"kind": {"const": "evidence"}}}]},
+    "capabilityReference": {"allOf": [{"$ref": "#/$defs/reference"}, {"properties": {"kind": {"const": "capability"}}}]},
+    "selection": {
+      "type": "object", "additionalProperties": false, "required": ["id", "version", "scope"],
+      "properties": {"id": {"$ref": "#/$defs/text"}, "version": {"$ref": "#/$defs/version"}, "scope": {"allOf": [{"$ref": "#/$defs/text"}, {"not": {"const": "$scope"}}]}, "reason": {"$ref": "#/$defs/text"}}
+    },
+    "fact": {
+      "type": "object", "additionalProperties": false, "required": ["id", "scope", "status"],
+      "properties": {"id": {"$ref": "#/$defs/text"}, "scope": {"$ref": "#/$defs/text"}, "status": {"enum": ["confirmed", "inferred", "unknown"]}, "value": {}, "source": {"$ref": "#/$defs/text"}},
+      "allOf": [{"if": {"properties": {"status": {"enum": ["confirmed", "inferred"]}}}, "then": {"required": ["value", "source"]}}]
+    },
+    "available": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "scope", "source"],
+      "properties": {"kind": {"enum": ["artifact", "evidence", "capability"]}, "id": {"$ref": "#/$defs/text"}, "scope": {"$ref": "#/$defs/text"}, "source": {"$ref": "#/$defs/text"}, "version": {"$ref": "#/$defs/version"}}
+    },
+    "stage": {"type": "object", "additionalProperties": false, "required": ["consumes", "produces"], "properties": {"consumes": {"$ref": "#/$defs/texts", "description": "With an explicit current stage, each name requires a caller-provided artifact/evidence in the method scope or explicit project scope. Capabilities are not resource substitutes."}, "produces": {"$ref": "#/$defs/texts", "description": "Future outputs of this stage; not required as prerequisites."}}},
+    "method": {
+      "type": "object", "additionalProperties": false, "required": ["id", "version", "dimensions"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"},
+        "version": {"$ref": "#/$defs/version"},
+        "dimensions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["goal_source", "business_modeling", "experience_design", "internal_structure", "deployment_topology", "interaction", "contract", "verification", "collaboration", "execution_organization", "delivery", "cross_cutting_quality"]}},
+        "applies_when": {"$ref": "#/$defs/condition"},
+        "does_not_apply_when": {"$ref": "#/$defs/condition"},
+        "requires": {"type": "array", "items": {"$ref": "#/$defs/reference"}},
+        "requires_any": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "options"], "properties": {"id": {"$ref": "#/$defs/text"}, "options": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/reference"}}, "when": {"$ref": "#/$defs/condition"}}}},
+        "recommends": {"type": "array", "items": {"$ref": "#/$defs/reference"}},
+        "conflicts": {"type": "array", "items": {"$ref": "#/$defs/methodReference"}},
+        "supersedes": {"type": "array", "items": {"$ref": "#/$defs/methodReference"}},
+        "stages": {"type": "object", "additionalProperties": false, "properties": {"design": {"$ref": "#/$defs/stage"}, "plan": {"$ref": "#/$defs/stage"}, "implement": {"$ref": "#/$defs/stage"}, "review": {"$ref": "#/$defs/stage"}, "verify": {"$ref": "#/$defs/stage"}, "deliver": {"$ref": "#/$defs/stage"}}},
+        "acceptance": {"type": "object", "additionalProperties": false, "required": ["required_evidence"], "properties": {"required_evidence": {"type": "array", "items": {"$ref": "#/$defs/evidenceReference"}}}},
+        "host": {"type": "object", "additionalProperties": false, "required": ["requires", "handoff"], "properties": {"requires": {"type": "array", "items": {"$ref": "#/$defs/capabilityReference"}}, "handoff": {"$ref": "#/$defs/texts"}}},
+        "degradation": {"type": "object", "additionalProperties": false, "required": ["retain", "withdraw"], "properties": {"retain": {"$ref": "#/$defs/texts"}, "withdraw": {"$ref": "#/$defs/texts"}}}
+      }
+    }
+  }
+}

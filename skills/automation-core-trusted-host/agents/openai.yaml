@@ -1,0 +1,7 @@
+interface:
+  display_name: "Automation Core Trusted Host"
+  short_description: "Run P1-P6 and present explicit V4 decisions"
+  default_prompt: "Use $automation-core-trusted-host to execute this project through E:\\personal-ai-suite\\automation-core and the complete P1-P6 pipeline, or to present and handle an explicit V4 human action."
+
+policy:
+  allow_implicit_invocation: true

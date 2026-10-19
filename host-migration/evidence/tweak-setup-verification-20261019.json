@@ -50,13 +50,32 @@
     "original_plugin_files_changed": 0,
     "actual_source_renderer_preferences_exported_by_agent": false,
     "whole_proposed_git_tree_scan": {
-      "files": 1014,
+      "files": 1015,
       "known_credential_values_compared": 20,
       "findings": 0
-    }
+    },
+    "guide_powershell_blocks_parsed": 1,
+    "guide_powershell_parse_failures": 0
   },
   "github_download": {
-    "status": "pending_after_publication"
+    "status": "passed",
+    "profile_commit": "1afea220a8ee88ad949a4ff11f316f65612aa115",
+    "general_commit": "449eee774e717e5813b96fa366f19efadcf567d3",
+    "fresh_github_clones": true,
+    "package_verify": {
+      "verified_entries": 849,
+      "hosts": [
+        "codex",
+        "codex_plus_plus",
+        "claude_code"
+      ]
+    },
+    "unittest_passed": 30,
+    "unittest_failed": 0,
+    "duration_seconds": 63.242,
+    "code_and_payload_checksums_sha256": "a82b950b9b3817d0bcf55f5f188612e9668654b8e3a8c4ec3cf4791f1f6b3e7e",
+    "profile_clone_clean": true,
+    "general_clone_clean": true
   },
   "limits": [
     "Native Electron desktop pages and actual automatic continuation were not exercised on a different physical computer.",

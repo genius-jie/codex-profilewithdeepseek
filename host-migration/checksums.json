@@ -855,9 +855,9 @@
   "review-only/codex/model-instructions/gpt-5.6-sol-unrestricted-v5.md.txt": "02c018e5fac85500d4eb17904769a32b8b22971499c7f94e9ccc8bd6cc9e9104",
   "review-only/codex_plus_plus/model-instructions/gpt-5.6-sol-unrestricted-v5.md.txt": "bb8443f695b14e58f02945ce87d0012eeb20bc35842e035cffee71db6d5790b6",
   "source-layout.example.json": "47b3d74e442d87fea5151181cdd3d0a6729c55e952c6a95cf017fb35dcb7df15",
-  "tools/common.py": "cc14a65af593cd6c319e674659bedc6dfceb9c7fb0f3f844ec336911fc57fd56",
+  "tools/common.py": "366ed8aa9d7443c439f1c00707d449eb053059fe258a72267bc656b61f9b076d",
   "tools/export.py": "d7f9401bb4b595e99ae0509fbad2080b16080dde54a70ebe23899c822db766e0",
   "tools/readiness.py": "da783b9add9c963f19e0e25b2e49ce57783c57107f505a78fcb9aa0f1c9470f3",
-  "tools/restore.py": "91aa33bd3e2aa180e192e55da2e38e5e7f8fd13f64acccd9e5b1ddbc89982794",
-  "tools/test_migration.py": "b694a41a2d3415346ea80de40597c2232ffb4ecfae401e7b4d499169935adfb4"
+  "tools/restore.py": "ab03d7a5680155f043fb571eb7d664933308ff2310b29f8012ec96441d318232",
+  "tools/test_migration.py": "a583b4e5b9d19548dac82cdd7598259a7c39680825cffd84aae932eda97994ba"
 }

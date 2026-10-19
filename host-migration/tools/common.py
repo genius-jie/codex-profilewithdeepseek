@@ -32,7 +32,7 @@ def sha256(data: bytes) -> str:
 
 
 def general_asset_sha256(path: Path) -> str:
-    data = path.read_bytes()
+    data = fs_path(path).read_bytes()
     binary = path.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".docx", ".xlsx", ".pptx", ".woff", ".woff2", ".exe", ".dll"} or b"\0" in data
     if not binary:
         # Also covers extensionless LICENSE/.keep files. No source is rewritten.
@@ -46,7 +46,7 @@ def general_asset_sha256(path: Path) -> str:
 
 
 def load_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+    return json.loads(fs_path(path).read_text(encoding="utf-8-sig"))
 
 
 def json_bytes(value) -> bytes:

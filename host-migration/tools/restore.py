@@ -63,6 +63,7 @@ def bindings_from_layout(layout: dict, package=PACKAGE):
 
 
 def verify(package=PACKAGE, sealed=True):
+    package = fs_path(package)
     manifest = load_json(package / "manifest.json")
     if manifest.get("schema_version") != "host-migration.v1" or manifest.get("hosts") != list(HOSTS):
         raise ValueError("Unknown or incomplete host manifest")
@@ -101,6 +102,7 @@ def verify(package=PACKAGE, sealed=True):
 
 
 def package_files(package):
+    package = fs_path(package)
     return {p.relative_to(package).as_posix() for p in package.rglob("*") if p.is_file()
             and p.name != "checksums.json" and "__pycache__" not in p.parts
             and not any(x.startswith(".host-migration-") for x in p.parts)
@@ -108,6 +110,7 @@ def package_files(package):
 
 
 def seal(package=PACKAGE):
+    package = fs_path(package)
     verify(package, sealed=False)
     sums = {name: sha256((package / name).read_bytes()) for name in sorted(package_files(package))}
     (package / "checksums.json").write_bytes(json_bytes(sums))
@@ -115,7 +118,7 @@ def seal(package=PACKAGE):
 
 
 def general_check(manifest, bindings):
-    root = Path(bindings["GENERAL_ROOT"])
+    root = fs_path(Path(bindings["GENERAL_ROOT"]))
     for relative, expected in manifest["general"]["files"].items():
         path = root / safe_relative(relative)
         if not path.is_file() or general_asset_sha256(path) != expected:
@@ -123,6 +126,7 @@ def general_check(manifest, bindings):
 
 
 def plan(manifest, bindings, hosts=HOSTS, support=(), managed=False, package=PACKAGE):
+    package = fs_path(package)
     general_check(manifest, bindings)
     operations = []
     for entry in manifest["entries"]:
@@ -180,6 +184,7 @@ def save_receipt(path, receipt):
 
 
 def apply(manifest, bindings, operations, receipt_path, hosts=HOSTS, package=PACKAGE):
+    package = fs_path(package)
     if any(x["status"] == "collision" for x in operations):
         raise ValueError("Collision detected; no file was written")
     assert_physical_chain(receipt_path)

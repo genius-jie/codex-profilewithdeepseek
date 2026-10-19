@@ -13,7 +13,7 @@ import tempfile
 import tomllib
 import unittest
 
-from common import HOSTS, is_reparse, json_bytes, scan_secrets, sha256, strip_secrets
+from common import HOSTS, fs_path, is_reparse, json_bytes, scan_secrets, sha256, strip_secrets
 from restore import (PACKAGE, apply, bindings_from_layout, plan, rollback, seal,
                      verify, package_files)
 from readiness import readiness
@@ -101,6 +101,18 @@ class MigrationTests(unittest.TestCase):
         tracked = {x for x in proc.stdout.decode("utf-8").split("\0") if x}
         missing = [name for name in package_files(PACKAGE) if "host-migration/" + name not in tracked]
         self.assertEqual(missing, [])
+
+    def test_package_verification_and_plan_from_deep_clone_path(self):
+        deep = self.base / ("Long clone parent " * 7).strip() / "host-migration"
+        shutil.copytree(fs_path(PACKAGE), fs_path(deep), ignore=shutil.ignore_patterns("__pycache__"))
+        try:
+            manifest = verify(deep)
+            self.assertEqual(len(manifest["entries"]), len(self.manifest["entries"]))
+            operations = plan(manifest, self.bindings, package=deep)
+            self.assertGreater(len(operations), 100)
+        finally:
+            deep.resolve().relative_to(self.base.resolve())
+            shutil.rmtree(fs_path(deep))
 
     def test_all_hosts_support_managed_idempotency_and_rollback(self):
         support = ("launcher", "adapter", "ccs_mcp", "codexpp_source", "codexpp_tweaks")

@@ -13,14 +13,14 @@
     "review_only_entries": 112,
     "general_reference_files": 364,
     "general_commit": "449eee774e717e5813b96fa366f19efadcf567d3",
-    "checksums_sha256": "e7d6065676cd890e21d5a54ffc2fd1425fad2a2fd1967446cef2a42d948c7827"
+    "checksums_sha256": "d2f22f5ba3923fd882525534d6b477f67d8761373559a4ffd0793d7b31fd8410"
   },
   "verification": {
     "unittest": {
       "command": "python -m unittest discover -s host-migration/tools -p test_migration.py -v",
-      "passed": 13,
+      "passed": 14,
       "failed": 0,
-      "duration_seconds": 21.415,
+      "duration_seconds": 26.947,
       "general_source": "fresh GitHub clone at the pinned commit, outside the original General checkout"
     },
     "runtime_drill": [
@@ -36,7 +36,8 @@
       "single-host selection excludes other host writes",
       "overlap, traversal and reparse target rejection",
       "rollback removes only this restore's unchanged files and original Junctions",
-      "user-edited file survives rollback"
+      "user-edited file survives rollback",
+      "sealed package verification and planning from a deep source clone path"
     ],
     "powershell_parser": {
       "files": 72,
@@ -130,6 +131,11 @@
   "publication_correction": {
     "first_fresh_download_detected": "sanitized settings.local.json matched an overly broad private-layout ignore pattern",
     "resolution": "ignore only root-local private layouts; explicitly track the sanitized host payload; add full sealed-file Git tracking regression",
-    "fresh_download_rerun": "required after correction commit"
+    "fresh_download_rerun": "required after correction commit",
+    "long_source_path": {
+      "confirmed": "the file was tracked and present, but a 286-character normal Windows path could not be read",
+      "resolution": "use the same extended-path I/O for package reads, target writes and General asset reads",
+      "regression": "deep source package verification and planning test passed"
+    }
   }
 }

@@ -67,6 +67,16 @@
     "sealed_files_tracked_in_git": {
       "files": 861,
       "missing": 0
+    },
+    "github_download": {
+      "tested_commit": "f7fb321739a70f84665be31afa0e2a4153b88c8b",
+      "checkout": "fresh remote clone updated from origin after the publication fixes",
+      "package_verify_entries": 849,
+      "sealed_file_tracking_missing": 0,
+      "unittest_passed": 14,
+      "unittest_failed": 0,
+      "duration_seconds": 24.447,
+      "code_and_payload_checksums_sha256": "d2f22f5ba3923fd882525534d6b477f67d8761373559a4ffd0793d7b31fd8410"
     }
   },
   "whitespace_resolution": {
@@ -131,7 +141,7 @@
   "publication_correction": {
     "first_fresh_download_detected": "sanitized settings.local.json matched an overly broad private-layout ignore pattern",
     "resolution": "ignore only root-local private layouts; explicitly track the sanitized host payload; add full sealed-file Git tracking regression",
-    "fresh_download_rerun": "required after correction commit",
+    "fresh_download_rerun": "passed: verify 849 entries and 14 tests at f7fb321739a70f84665be31afa0e2a4153b88c8b",
     "long_source_path": {
       "confirmed": "the file was tracked and present, but a 286-character normal Windows path could not be read",
       "resolution": "use the same extended-path I/O for package reads, target writes and General asset reads",

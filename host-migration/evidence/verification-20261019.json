@@ -13,14 +13,14 @@
     "review_only_entries": 112,
     "general_reference_files": 364,
     "general_commit": "449eee774e717e5813b96fa366f19efadcf567d3",
-    "checksums_sha256": "8d42b82b237afe6929011cd5c37732571671f962be369ed64581f55a3b4dfd8a"
+    "checksums_sha256": "e7d6065676cd890e21d5a54ffc2fd1425fad2a2fd1967446cef2a42d948c7827"
   },
   "verification": {
     "unittest": {
       "command": "python -m unittest discover -s host-migration/tools -p test_migration.py -v",
-      "passed": 12,
+      "passed": 13,
       "failed": 0,
-      "duration_seconds": 21.011,
+      "duration_seconds": 21.415,
       "general_source": "fresh GitHub clone at the pinned commit, outside the original General checkout"
     },
     "runtime_drill": [
@@ -52,7 +52,7 @@
     },
     "staged_credential_scan": {
       "scope": "entire proposed Git tree",
-      "files": 1001,
+      "files": 1002,
       "findings": 0,
       "bot_webhook_config_tracked": false
     },
@@ -62,6 +62,10 @@
     },
     "cached_diff_check": {
       "exit_code": 0
+    },
+    "sealed_files_tracked_in_git": {
+      "files": 861,
+      "missing": 0
     }
   },
   "whitespace_resolution": {
@@ -122,5 +126,10 @@
     "excluded": "business connector config directories and credential-bearing review-only source",
     "outgoing_history": "only the corrected task commit is published; the intermediate local commit is replaced before push",
     "regression": "bot hook URL detection and private webhook file exclusion pass in the test suite"
+  },
+  "publication_correction": {
+    "first_fresh_download_detected": "sanitized settings.local.json matched an overly broad private-layout ignore pattern",
+    "resolution": "ignore only root-local private layouts; explicitly track the sanitized host payload; add full sealed-file Git tracking regression",
+    "fresh_download_rerun": "required after correction commit"
   }
 }

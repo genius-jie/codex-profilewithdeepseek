@@ -1,9 +1,9 @@
 # Target-local path selections and restore receipts stay private.
-layout.json
-source-layout.json
-*.local.json
+/layout.json
+/source-layout.json
+/*.local.json
 *.env
 !*.example.env
-restore-*.json
+/restore-*.json
 __pycache__/
 *.pyc

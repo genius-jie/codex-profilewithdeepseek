@@ -15,7 +15,7 @@ import unittest
 
 from common import HOSTS, is_reparse, json_bytes, scan_secrets, sha256, strip_secrets
 from restore import (PACKAGE, apply, bindings_from_layout, plan, rollback, seal,
-                     verify)
+                     verify, package_files)
 from readiness import readiness
 
 
@@ -93,6 +93,14 @@ class MigrationTests(unittest.TestCase):
         ops = plan(self.manifest, self.bindings)
         self.assertGreater(len(ops), 100)
         self.assertEqual(list(self.base.iterdir()), [])
+
+    def test_git_tracks_every_sealed_package_file(self):
+        proc = subprocess.run(["git", "-C", str(PACKAGE.parent), "ls-files", "-z", "--", "host-migration"], capture_output=True)
+        if proc.returncode:
+            self.skipTest("Git tracking check applies to Git clones, not extracted archives")
+        tracked = {x for x in proc.stdout.decode("utf-8").split("\0") if x}
+        missing = [name for name in package_files(PACKAGE) if "host-migration/" + name not in tracked]
+        self.assertEqual(missing, [])
 
     def test_all_hosts_support_managed_idempotency_and_rollback(self):
         support = ("launcher", "adapter", "ccs_mcp", "codexpp_source", "codexpp_tweaks")

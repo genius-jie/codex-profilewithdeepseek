@@ -1,0 +1,20 @@
+{
+  "id": "co.shivam94.reasoning-fixes",
+  "name": "Reasoning & Exploration Fixes",
+  "version": "1.2.0",
+  "description": "v1.2.0 stable \u2014 Keep exploration panels open, reasoning visible, and tool outputs expanded. 14 source patches + 3 runtime features.",
+  "author": {
+    "name": "shivam94",
+    "url": "https://github.com/shivam2014/codex-plusplus-reasoning-fixes"
+  },
+  "tags": [
+    "ui",
+    "reasoning",
+    "exploration",
+    "accessibility"
+  ],
+  "scope": "both",
+  "main": "index.js",
+  "githubRepo": "shivam2014/codex-plusplus-reasoning-fixes",
+  "minRuntime": "0.1.0"
+}

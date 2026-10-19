@@ -1,0 +1,15 @@
+{
+  "id": "co.bennett.codex-tab-switcher",
+  "name": "Codex Tab Switcher",
+  "version": "1.0.0",
+  "githubRepo": "b-nnett/codex-plusplus-tab-switcher",
+  "description": "Switch between recent Codex chats with a Ctrl-Tab overlay and tiny chat previews.",
+  "author": {
+    "name": "bennett",
+    "url": "https://github.com/b-nnett"
+  },
+  "homepage": "https://github.com/b-nnett/codex-plusplus-tab-switcher",
+  "tags": ["ui", "shortcuts", "productivity"],
+  "scope": "both",
+  "main": "index.js"
+}

@@ -1,0 +1,410 @@
+{
+  "schema_version": "w31_agent_research_packet.v1",
+  "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+  "scenario": "product_sales",
+  "entity_type": "product",
+  "region_scope": "global",
+  "entity_normalized": "AirPods Pro 3 SKU",
+  "fact_dimensions": [
+    "price",
+    "sku",
+    "promotion",
+    "review_count",
+    "sales_signal"
+  ],
+  "decision_basis": [
+    "business_fact_authority",
+    "field_coverage",
+    "freshness",
+    "repeatability",
+    "crawl_friction"
+  ],
+  "discovery_methods": [
+    "official_entry_check",
+    "marketplace_search",
+    "social_platform_search",
+    "secondhand_platform_search",
+    "search_engine_execution",
+    "browser_probe"
+  ],
+  "discovery_process": {
+    "queries": [
+      "AirPods Pro 3 SKU 官方店 价格 SKU",
+      "AirPods Pro 3 SKU 京东 天猫 SKU 评价",
+      "AirPods Pro 3 SKU 小红书 口碑 价格",
+      "AirPods Pro 3 SKU 闲鱼 二手 残值"
+    ],
+    "platform_checks": [
+      "fixture:AirPods Pro 3 SKU 官方店 价格 SKU:ok",
+      "fixture:AirPods Pro 3 SKU 京东 天猫 SKU 评价:ok",
+      "fixture:AirPods Pro 3 SKU 小红书 口碑 价格:ok",
+      "fixture:AirPods Pro 3 SKU 闲鱼 二手 残值:ok"
+    ],
+    "official_entry_checks": [
+      "brand website product navigation",
+      "brand official store seller identity"
+    ],
+    "notes": [
+      "销售事实以官方售卖面和电商官方店为主，社交与二手只做口碑或残值交叉。",
+      "以上只是调研假设和查询计划；必须由 Agent 执行搜索/站内检查/官方入口核验后再裁决主事实源。",
+      "真实搜索/页面探测已执行；仍需 Agent 读 evidence 后选择主源、交叉源和排除源。"
+    ]
+  },
+  "candidate_sources": [
+    {
+      "source_id": "brand_official_store_cn",
+      "platform": "brand official store",
+      "source_family": "official_source",
+      "role": "primary_fact_source",
+      "priority_rank": 1,
+      "score": {
+        "fact_authority": 5,
+        "field_coverage": 4,
+        "freshness": 4,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 20
+      },
+      "authority_basis": "品牌官方售卖面最能代表当前官方标价、SKU、库存和促销口径。",
+      "target_fields": [
+        "sku",
+        "list_price",
+        "promotion",
+        "inventory_status"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "S31A 判断官网/官方店是否走 opencli、API、SSR JSON 或 browser fallback。",
+      "evidence": [
+        "search:AirPods Pro 3 SKU 官方店 价格 SKU -> Buy AirPods Pro 3 - Apple (https://www.apple.com/shop/buy-airpods/airpods-pro-3) :: Apple official buying page lists AirPods Pro 3 at $249.00 and shows direct Apple purchase and financing options. | browser_probe:ok title=Buy AirPods Pro 3 - Apple",
+        "search:AirPods Pro 3 SKU 官方店 价格 SKU -> AirPods Pro 3 - Apple (https://www.apple.com/airpods-pro/) :: Apple official product page names AirPods Pro 3, current product features and the buy entry. | browser_probe:ok title=AirPods Pro 3 - Apple",
+        "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 Wireless Earbuds - Amazon (https://www.amazon.com/Apple-Cancellation-Translation-Headphones-High-Fidelity/dp/B0FQFB8FMG) :: Amazon product surface shows Apple brand, offer surface, ratings signal and marketplace ordering context. | browser_probe:ok title=Apple AirPods Pro 3 Wireless Earbuds - Amazon",
+        "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 京东 / 天猫 官方店搜索 (https://search.jd.com/Search?keyword=AirPods%20Pro%203) :: JD search surface is used to locate Apple official or self-operated listings, SKU choices, price and review counts. | browser_probe:ok title=京东 AirPods Pro 3 搜索"
+      ],
+      "observed_urls": [
+        "https://www.apple.com/shop/buy-airpods/airpods-pro-3",
+        "https://www.apple.com/airpods-pro/",
+        "https://www.amazon.com/Apple-Cancellation-Translation-Headphones-High-Fidelity/dp/B0FQFB8FMG",
+        "https://search.jd.com/Search?keyword=AirPods%20Pro%203"
+      ]
+    },
+    {
+      "source_id": "jd_tmall_official_store",
+      "platform": "JD/Tmall official store",
+      "source_family": "commerce_marketplace",
+      "role": "primary_fact_source",
+      "priority_rank": 2,
+      "score": {
+        "fact_authority": 4,
+        "field_coverage": 5,
+        "freshness": 5,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 21
+      },
+      "authority_basis": "电商官方店承载成交价格附近的实时价格、促销、评价数和 SKU 事实。",
+      "target_fields": [
+        "sale_price",
+        "sku",
+        "promotion",
+        "review_count",
+        "seller_name"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "优先探 OpenCLI/站点 API/SSR JSON，失败后才使用登录浏览器证据。",
+      "evidence": [
+        "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 京东 / 天猫 官方店搜索 (https://search.jd.com/Search?keyword=AirPods%20Pro%203) :: JD search surface is used to locate Apple official or self-operated listings, SKU choices, price and review counts. | browser_probe:ok title=京东 AirPods Pro 3 搜索"
+      ],
+      "observed_urls": [
+        "https://search.jd.com/Search?keyword=AirPods%20Pro%203"
+      ]
+    },
+    {
+      "source_id": "xiaohongshu_product_posts",
+      "platform": "xiaohongshu",
+      "source_family": "social_content",
+      "role": "cross_check_source",
+      "priority_rank": 3,
+      "score": {
+        "fact_authority": 2,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 3,
+        "crawl_friction": 3,
+        "total": 15
+      },
+      "authority_basis": "社交内容能验证被提及价格和用户口碑，但不代表销售事实。",
+      "target_fields": [
+        "note_count",
+        "sentiment_sample",
+        "mentioned_price"
+      ],
+      "expected_collection_mode": "content_mining_analysis_summary",
+      "probe_hint": "仅作为交叉验证和口碑补充进入 S31C。",
+      "evidence": [
+        "search:AirPods Pro 3 SKU 小红书 口碑 价格 -> 小红书 AirPods Pro 3 口碑与价格笔记搜索 (https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203) :: Xiaohongshu search can surface user notes discussing fit, ANC, mentioned purchase price and subjective complaints. | browser_probe:ok title=小红书 AirPods Pro 3 搜索"
+      ],
+      "observed_urls": [
+        "https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203"
+      ]
+    },
+    {
+      "source_id": "xianyu_resale_listing",
+      "platform": "xianyu",
+      "source_family": "secondhand_marketplace",
+      "role": "market_signal_source",
+      "priority_rank": 4,
+      "score": {
+        "fact_authority": 1,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 2,
+        "crawl_friction": 2,
+        "total": 12
+      },
+      "authority_basis": "二手挂牌可反映残值，但不能代表新品销售价格。",
+      "target_fields": [
+        "resale_price",
+        "condition",
+        "listing_age"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "除非业务目标改为二手行情，否则不进入主链路。",
+      "evidence": [
+        "search:AirPods Pro 3 SKU 闲鱼 二手 残值 -> 闲鱼 / Goofish AirPods Pro 3 二手搜索 (https://www.goofish.com/search?q=AirPods%20Pro%203) :: Goofish/Xianyu search can show used asking prices, item condition and seller notes."
+      ],
+      "observed_urls": [
+        "https://www.goofish.com/search?q=AirPods%20Pro%203"
+      ]
+    }
+  ],
+  "selected_primary_source_ids": [
+    "brand_official_store_cn",
+    "jd_tmall_official_store"
+  ],
+  "cross_check_source_ids": [
+    "xiaohongshu_product_posts"
+  ],
+  "excluded_sources": [
+    {
+      "source_family": "secondhand_marketplace",
+      "reason": "二手和回收价反映残值、成色和议价，不代表 AirPods Pro 3 新品销售价格或 SKU 事实。",
+      "can_be_reintroduced_as": "market_signal_source",
+      "evidence": [
+        "BankMyCell/eBay/Goofish evidence all focuses on used resale value, condition and secondhand asking price.",
+        "二手平台可以帮助判断残值，但不能替代 Apple 官方购买页或电商交易面的新品事实。"
+      ]
+    },
+    {
+      "source_family": "generic_web",
+      "reason": "通用网页和媒体导购可以发现促销线索，但不直接承载官方 SKU、实时库存或交易面评价数。",
+      "can_be_reintroduced_as": "discovery_source",
+      "evidence": [
+        "Tech/deal articles may quote discounts, but source-of-record fields still need Apple or marketplace pages.",
+        "通用搜索更适合发现入口，不适合作为主事实源。"
+      ]
+    }
+  ],
+  "decision_trace": [
+    "Agent 先把需求判为商品销售分析，事实字段是价格、SKU、促销、评价规模和销售信号。",
+    "Apple 官方购买页是官方标价和官方购买条件的事实源，权威性高于媒体导购和社交讨论。",
+    "Best Buy/Amazon/JD/Tmall 交易面覆盖实时销售价、评价数、SKU 或卖家身份，是销售分析的第二主源。",
+    "小红书/YouTube/Reddit 只保留为口碑和体验交叉验证；BankMyCell/eBay/Goofish 二手证据被排除出新品销售主链。"
+  ],
+  "confidence": "high",
+  "agent_review_required": false,
+  "analysis_input_ready": true,
+  "research_execution_chain": {
+    "search_provider": "fixture",
+    "search_receipts": [
+      {
+        "query": "AirPods Pro 3 SKU 官方店 价格 SKU",
+        "provider": "fixture",
+        "status": "ok",
+        "result_count": 2,
+        "results": [
+          {
+            "title": "Buy AirPods Pro 3 - Apple",
+            "url": "https://www.apple.com/shop/buy-airpods/airpods-pro-3",
+            "snippet": "Apple official buying page lists AirPods Pro 3 at $249.00 and shows direct Apple purchase and financing options."
+          },
+          {
+            "title": "AirPods Pro 3 - Apple",
+            "url": "https://www.apple.com/airpods-pro/",
+            "snippet": "Apple official product page names AirPods Pro 3, current product features and the buy entry."
+          }
+        ]
+      },
+      {
+        "query": "AirPods Pro 3 SKU 京东 天猫 SKU 评价",
+        "provider": "fixture",
+        "status": "ok",
+        "result_count": 3,
+        "results": [
+          {
+            "title": "Apple AirPods Pro 3, Wireless Active Noise Cancelling Earbuds - Best Buy",
+            "url": "https://www.bestbuy.com/product/apple-airpods-pro-3-wireless-active-noise-cancelling-earbuds-with-heart-rate-sensing-feature-white/JJGCQLYK5F",
+            "snippet": "Best Buy product page carries retail price, SKU-like product id, rating and review count for AirPods Pro 3."
+          },
+          {
+            "title": "Apple AirPods Pro 3 Wireless Earbuds - Amazon",
+            "url": "https://www.amazon.com/Apple-Cancellation-Translation-Headphones-High-Fidelity/dp/B0FQFB8FMG",
+            "snippet": "Amazon product surface shows Apple brand, offer surface, ratings signal and marketplace ordering context."
+          },
+          {
+            "title": "Apple AirPods Pro 3 京东 / 天猫 官方店搜索",
+            "url": "https://search.jd.com/Search?keyword=AirPods%20Pro%203",
+            "snippet": "JD search surface is used to locate Apple official or self-operated listings, SKU choices, price and review counts."
+          }
+        ]
+      },
+      {
+        "query": "AirPods Pro 3 SKU 小红书 口碑 价格",
+        "provider": "fixture",
+        "status": "ok",
+        "result_count": 3,
+        "results": [
+          {
+            "title": "小红书 AirPods Pro 3 口碑与价格笔记搜索",
+            "url": "https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203",
+            "snippet": "Xiaohongshu search can surface user notes discussing fit, ANC, mentioned purchase price and subjective complaints."
+          },
+          {
+            "title": "AirPods Pro 3 REVIEW: Worth Every Penny! - YouTube",
+            "url": "https://www.youtube.com/watch?v=EyReTQBuEKg",
+            "snippet": "YouTube review evidence is useful for reputation cross-check, not for authoritative sales price."
+          },
+          {
+            "title": "r/buildapcsales: Apple AirPods Pro 3 deal discussion",
+            "url": "https://www.reddit.com/r/buildapcsales/comments/1nlkf9r/earbuds_apple_airpods_pro_3_wireless_earbuds_for/",
+            "snippet": "Reddit users discuss a marketplace deal and early user impressions after delivery."
+          }
+        ]
+      },
+      {
+        "query": "AirPods Pro 3 SKU 闲鱼 二手 残值",
+        "provider": "fixture",
+        "status": "ok",
+        "result_count": 3,
+        "results": [
+          {
+            "title": "Sell Apple AirPods Pro 3 Trade-in Value - BankMyCell",
+            "url": "https://www.bankmycell.com/sell/apple-airpods-pro-3",
+            "snippet": "Buyback page reports resale and trade-in value ranges for used AirPods Pro 3."
+          },
+          {
+            "title": "Apple AirPods 3rd Generation for sale - eBay",
+            "url": "https://www.ebay.com/b/Apple-AirPods-3rd-Generation/80077/bn_7117879255",
+            "snippet": "eBay listings include pre-owned AirPods Pro 3 examples, bid prices, condition and remaining time."
+          },
+          {
+            "title": "闲鱼 / Goofish AirPods Pro 3 二手搜索",
+            "url": "https://www.goofish.com/search?q=AirPods%20Pro%203",
+            "snippet": "Goofish/Xianyu search can show used asking prices, item condition and seller notes."
+          }
+        ]
+      }
+    ],
+    "browser_probe_receipts": [
+      {
+        "url": "https://www.apple.com/shop/buy-airpods/airpods-pro-3",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "Buy AirPods Pro 3 - Apple",
+        "description": "Apple official store page for buying AirPods Pro 3.",
+        "text_sample": "Apple official store AirPods Pro 3 price $249.00 Apple Card monthly installment purchase option official SKU product configuration promotion eligibility inventory delivery pickup",
+        "domain": "www.apple.com"
+      },
+      {
+        "url": "https://www.apple.com/airpods-pro/",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "AirPods Pro 3 - Apple",
+        "description": "Apple official product page for AirPods Pro 3.",
+        "text_sample": "Apple official product page AirPods Pro 3 active noise cancellation buy product feature official model current product page",
+        "domain": "www.apple.com"
+      },
+      {
+        "url": "https://www.bestbuy.com/product/apple-airpods-pro-3-wireless-active-noise-cancelling-earbuds-with-heart-rate-sensing-feature-white/JJGCQLYK5F",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "Apple AirPods Pro 3 - Best Buy",
+        "description": "Best Buy commerce listing with price, SKU-like product id, rating and review count.",
+        "text_sample": "Best Buy commerce marketplace Apple AirPods Pro 3 sale price SKU 12213138 rating 4.8 reviews 8864 pickup shipping seller retail offer",
+        "domain": "www.bestbuy.com"
+      },
+      {
+        "url": "https://www.amazon.com/Apple-Cancellation-Translation-Headphones-High-Fidelity/dp/B0FQFB8FMG",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "Apple AirPods Pro 3 Wireless Earbuds - Amazon",
+        "description": "Amazon product surface for Apple AirPods Pro 3.",
+        "text_sample": "Amazon marketplace Apple Store AirPods Pro 3 offer price rating orders customer reviews variant seller delivery",
+        "domain": "www.amazon.com"
+      },
+      {
+        "url": "https://search.jd.com/Search?keyword=AirPods%20Pro%203",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "京东 AirPods Pro 3 搜索",
+        "description": "JD search surface for AirPods Pro 3 listings.",
+        "text_sample": "JD 京东 Tmall 天猫 Apple 官方旗舰店 AirPods Pro 3 SKU 价格 评价 店铺 自营 官方 listing search",
+        "domain": "search.jd.com"
+      },
+      {
+        "url": "https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "小红书 AirPods Pro 3 搜索",
+        "description": "Xiaohongshu search surface for user notes.",
+        "text_sample": "xiaohongshu 小红书 note user review AirPods Pro 3 口碑 价格 体验 舒适度 降噪 negative feedback likes comments",
+        "domain": "www.xiaohongshu.com"
+      },
+      {
+        "url": "https://www.youtube.com/watch?v=EyReTQBuEKg",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "AirPods Pro 3 REVIEW: Worth Every Penny! - YouTube",
+        "description": "YouTube review page for AirPods Pro 3.",
+        "text_sample": "YouTube social review AirPods Pro 3 user experience chapter review ANC fit translation price impression comments",
+        "domain": "www.youtube.com"
+      },
+      {
+        "url": "https://www.reddit.com/r/buildapcsales/comments/1nlkf9r/earbuds_apple_airpods_pro_3_wireless_earbuds_for/",
+        "provider": "fixture_browser_probe",
+        "status": "ok",
+        "http_status": 200,
+        "title": "Reddit AirPods Pro 3 deal discussion",
+        "description": "Reddit discussion about AirPods Pro 3 deal and early impressions.",
+        "text_sample": "reddit community AirPods Pro 3 deal discussion comments user impressions comfort noise cancellation sale price",
+        "domain": "www.reddit.com"
+      }
+    ],
+    "platform_supplemental_search": {
+      "triggered": false,
+      "provider": "auto",
+      "missing_source_ids": [],
+      "queries": [],
+      "search_receipt_count": 0,
+      "public_search_receipt_count": 0,
+      "adapter_provider": "opencli",
+      "adapter_queries": [],
+      "adapter_receipt_count": 0,
+      "adapter_statuses": [],
+      "browser_receipt_count": 0
+    },
+    "candidate_evidence_count": 7
+  },
+  "source_decision_ref": "airpods_pro_3_product_sales.data_source_decision_receipt.v1.json",
+  "source_selection_owner": "agent_synthesis",
+  "agent_synthesis": {
+    "status": "provided",
+    "basis": "Agent compared official buying page, marketplace listings, social discussions and secondhand surfaces, then separated sales facts from reputation and residual-value signals."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "evidenceType": "s12-failure-review",
+  "rerun_exit_code": 0,
+  "s12": "pass",
+  "command_fingerprint": "$env:CODEX_HOME='@@CODEXPP_HOME:escaped@@'; codex -a never --json --skip-git-repo-check exec -C 'D:\\' \"echo deterministic-ok\" 2>&1 | Select-Object -Firs",
+  "root_cause": "codex exec global-flag order probe: --json must follow exec; corrected rerun in same turn passed live smoke",
+  "corrected_command_note": "corrected exec form completed with real model turn; exit 0 / turn.completed",
+  "recorded_at": "2026-10-14"
+}

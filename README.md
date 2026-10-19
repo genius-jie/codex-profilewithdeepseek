@@ -1,5 +1,7 @@
 # Codex Profile with DeepSeek
 
+> **三宿主换机入口**：当前普通 Codex、Codex++、Claude Code 的配置与提示词迁移，使用 [host-migration 接手说明](host-migration/README.md)。其中提供按宿主隔离的模板、钩子、专用技能、启动依赖、校验清单、统一新机入口与回退；下文的根目录配置和简化启动脚本保留为早期 Profile 示例，不代表当前三个宿主的完整运行配置。
+
 > **基于 OpenAI Codex / Codex++ 架构的第三方大模型（DeepSeek、Qwen、Kimi）本地化工程 Profile 解决方案。**
 > 借助本地反向代理网关（CodexManager / “可乐”），打破模型壁垒，在本地维护高效、高自主性、上下文超长的 Agent 开发执行环境。
 

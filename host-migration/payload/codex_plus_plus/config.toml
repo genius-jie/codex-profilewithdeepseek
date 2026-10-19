@@ -1,0 +1,112 @@
+"model_provider" = "cm"
+"model_catalog_json" = "@@CODEXPP_HOME:escaped@@\\model_catalog.json"
+"approval_policy" = "never"
+"sandbox_mode" = "danger-full-access"
+"approvals_reviewer" = "user"
+"mcp_oauth_credentials_store" = "auto"
+"personality" = "pragmatic"
+"model" = "gpt-6.1-sol"
+"model_reasoning_effort" = "xhigh"
+"plan_mode_reasoning_effort" = "ultra"
+"model_reasoning_summary" = "detailed"
+"service_tier" = "priority"
+"model_verbosity" = "high"
+
+["model_providers"]
+
+["model_providers"."cm"]
+"name" = "OpenAI"
+"base_url" = "http://127.0.0.1:15740/v1"
+"supports_websockets" = false
+"env_key" = "CODEXPP_GATEWAY_TOKEN"
+
+["model_providers"."cm"."http_headers"]
+
+["model_providers"."cm"."env_http_headers"]
+"x-openai-actor-authorization" = "CODEXPP_ACTOR_AUTHORIZATION"
+
+["features"]
+"hooks" = true
+"memories" = true
+"js_repl" = false
+"multi_agent" = true
+"remote_compaction_v2" = true
+"remote_plugin" = false
+
+["features"."context_management"]
+"experimental_mode" = false
+
+["windows"]
+"sandbox" = "elevated"
+
+["plugins"]
+
+["plugins"."documents@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."spreadsheets@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."presentations@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."browser-use@openai-bundled"]
+"enabled" = true
+
+["plugins"."figma@openai-curated"]
+"enabled" = false
+
+["plugins"."github@openai-curated"]
+"enabled" = true
+
+["plugins"."notion@openai-curated"]
+"enabled" = true
+
+["plugins"."supabase@openai-curated"]
+"enabled" = true
+
+["plugins"."pdf@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."chrome@openai-bundled"]
+"enabled" = true
+
+["plugins"."computer-use@openai-bundled"]
+"enabled" = true
+
+["plugins"."figma@openai-api-curated"]
+"enabled" = true
+
+["plugins"."browser@openai-bundled"]
+"enabled" = true
+
+["plugins"."unified-computer-use@openai-bundled"]
+"enabled" = true
+
+["plugins"."visualize@openai-bundled"]
+"enabled" = true
+
+["plugins"."codex-app-tools@openai-bundled"]
+"enabled" = true
+
+["memories"]
+"generate_memories" = true
+"use_memories" = true
+"disable_on_external_context" = false
+
+["desktop"]
+"followUpQueueMode" = "queue"
+"enabled-reasoning-efforts" = ["low", "medium", "high", "xhigh", "max", "ultra"]
+"show-ultra-in-model-picker-slider" = false
+"conversationDetailMode" = "STEPS_COMMANDS"
+"toys-confetti-enabled" = true
+"external-agent-import-sync-enabled" = true
+"projectlessWorkspaceRoot" = "@@CODEXPP_PROFILE:escaped@@\\Documents\\Codex"
+"dictationDictionary" = ["codex"]
+"appshotSoundEnabled" = false
+
+["mcp_servers"]
+
+["mcp_servers"."windows-computer-use"]
+"command" = "node"
+"args" = ["@@CODEXPP_RUNTIME:escaped@@\\tweaks\\co.bennett.windows-computer-use\\mcp-server.js"]

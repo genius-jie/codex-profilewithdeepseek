@@ -1,0 +1,30 @@
+{
+  "codegraph": {
+    "command": "codegraph",
+    "args": [
+      "serve",
+      "--mcp"
+    ],
+    "type": "stdio"
+  },
+  "ccs-websearch": {
+    "type": "stdio",
+    "command": "cmd",
+    "args": [
+      "/c",
+      "node",
+      "@@USERPROFILE:escaped@@\\.ccs\\mcp\\ccs-websearch-server.cjs"
+    ],
+    "env": {}
+  },
+  "ccs-image-analysis": {
+    "type": "stdio",
+    "command": "cmd",
+    "args": [
+      "/c",
+      "node",
+      "@@USERPROFILE:escaped@@\\.ccs\\mcp\\ccs-image-analysis-server.cjs"
+    ],
+    "env": {}
+  }
+}

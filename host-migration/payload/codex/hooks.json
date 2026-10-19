@@ -1,0 +1,78 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@CODEX_PYTHON_EXE:escaped@@\" \"@@CODEX_HOME:escaped@@\\hooks\\hook_runner.py\" --event SessionStart --script \"@@CODEX_HOME:escaped@@\\hooks\\session_start_context.py\"",
+            "timeout": 30,
+            "statusMessage": "Loading host scope facts"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@CODEX_PYTHON_EXE:escaped@@\" \"@@CODEX_HOME:escaped@@\\hooks\\hook_runner.py\" --event PreToolUse --script \"@@CODEX_HOME:escaped@@\\hooks\\pre_tool_use_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking OpenClaw tool guard"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@CODEX_PYTHON_EXE:escaped@@\" \"@@CODEX_HOME:escaped@@\\hooks\\hook_runner.py\" --event PermissionRequest --script \"@@CODEX_HOME:escaped@@\\hooks\\permission_request_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking OpenClaw permission guard"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@CODEX_PYTHON_EXE:escaped@@\" \"@@CODEX_HOME:escaped@@\\hooks\\hook_runner.py\" --event PostToolUse --script \"@@CODEX_HOME:escaped@@\\hooks\\post_tool_use_audit.py\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@CODEX_PYTHON_EXE:escaped@@\" \"@@CODEX_HOME:escaped@@\\hooks\\w11_interrupt_trace.py\"",
+            "timeout": 15,
+            "statusMessage": "Writing W11 interrupt decision trace (G7 hardening)"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@CODEX_PYTHON_EXE:escaped@@\" \"@@CODEX_HOME:escaped@@\\hooks\\hook_runner.py\" --event Stop --script \"@@CODEX_HOME:escaped@@\\hooks\\stop_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking OpenClaw pending closure"
+          }
+        ]
+      }
+    ]
+  }
+}

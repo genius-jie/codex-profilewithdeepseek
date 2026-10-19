@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex++ Reasoning Fixes — Debugging Chronicle</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --paper:   #FFFFFF;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --clay-d:  #B85C3E;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --sky:     #6A8CAF;
+    --g100:    #F0EEE6;
+    --g200:    #E6E3DA;
+    --g300:    #D1CFC5;
+    --g500:    #87867F;
+    --g700:    #3D3D3A;
+    --rust:    #B04A3F;
+    --green:   #5B8C5A;
+    --amber:   #C9953C;
+    --serif:   ui-serif, Georgia, "Times New Roman", Times, serif;
+    --sans:    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono:    ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-dm]) {
+      --ivory:   #1A1A1A;
+      --paper:   #242424;
+      --slate:   #E8E6DC;
+      --clay:    #E8927A;
+      --clay-d:  #F0A088;
+      --oat:     #3D3D3A;
+      --olive:   #8CA87A;
+      --sky:     #8AAED0;
+      --g100:    #2E2E2E;
+      --g200:    #353535;
+      --g300:    #454545;
+      --g500:    #999999;
+      --g700:    #D4D4D4;
+      --rust:    #D97A6A;
+      --green:   #7AB87A;
+      --amber:   #D4A84E;
+    }
+    :root:not([data-dm]) .commit-link::before { border-color: #1A1A1A; }
+    :root:not([data-dm]) svg.dia .box { fill: #2A2A2A; stroke: #454545; }
+    :root:not([data-dm]) svg.dia .box.ok { fill: rgba(122,184,122,0.08); stroke: var(--green); }
+    :root:not([data-dm]) svg.dia .box.crit { fill: rgba(217,122,106,0.10); stroke: var(--rust); }
+    :root:not([data-dm]) svg.dia .box.main { fill: rgba(232,146,122,0.08); stroke: var(--clay); }
+    :root:not([data-dm]) .bug-card.critical .bug-num { background: rgba(217,122,106,0.12); }
+    :root:not([data-dm]) .bug-card.wiring .bug-num { background: rgba(212,168,78,0.12); }
+    :root:not([data-dm]) .severity-critical { background: rgba(217,122,106,0.08); }
+    :root:not([data-dm]) .severity-high { background: rgba(232,146,122,0.08); }
+    :root:not([data-dm]) .severity-medium { background: rgba(212,168,78,0.08); }
+  }
+
+  html[data-dm="dark"] {
+    --ivory:   #1A1A1A;
+    --paper:   #242424;
+    --slate:   #E8E6DC;
+    --clay:    #E8927A;
+    --clay-d:  #F0A088;
+    --oat:     #3D3D3A;
+    --olive:   #8CA87A;
+    --sky:     #8AAED0;
+    --g100:    #2E2E2E;
+    --g200:    #353535;
+    --g300:    #454545;
+    --g500:    #999999;
+    --g700:    #D4D4D4;
+    --rust:    #D97A6A;
+    --green:   #7AB87A;
+    --amber:   #D4A84E;
+  }
+  html[data-dm="dark"] .commit-link::before { border-color: #1A1A1A; }
+  html[data-dm="dark"] svg.dia .box { fill: #2A2A2A; stroke: #454545; }
+  html[data-dm="dark"] svg.dia .box.ok { fill: rgba(122,184,122,0.08); stroke: var(--green); }
+  html[data-dm="dark"] svg.dia .box.crit { fill: rgba(217,122,106,0.10); stroke: var(--rust); }
+  html[data-dm="dark"] svg.dia .box.main { fill: rgba(232,146,122,0.08); stroke: var(--clay); }
+  html[data-dm="dark"] .bug-card.critical .bug-num { background: rgba(217,122,106,0.12); }
+  html[data-dm="dark"] .bug-card.wiring .bug-num { background: rgba(212,168,78,0.12); }
+  html[data-dm="dark"] .severity-critical { background: rgba(217,122,106,0.08); }
+  html[data-dm="dark"] .severity-high { background: rgba(232,146,122,0.08); }
+  html[data-dm="dark"] .severity-medium { background: rgba(212,168,78,0.08); }
+
+  html[data-dm="light"] {
+    --ivory:   #FAF9F5;
+    --paper:   #FFFFFF;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --clay-d:  #B85C3E;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --sky:     #6A8CAF;
+    --g100:    #F0EEE6;
+    --g200:    #E6E3DA;
+    --g300:    #D1CFC5;
+    --g500:    #87867F;
+    --g700:    #3D3D3A;
+    --rust:    #B04A3F;
+    --green:   #5B8C5A;
+    --amber:   #C9953C;
+  }
+  html[data-dm="light"] .commit-link::before { border-color: #FAF9F5; }
+  html[data-dm="light"] svg.dia .box { fill: #FFFFFF; stroke: #D1CFC5; }
+  html[data-dm="light"] svg.dia .box.ok { fill: rgba(91,140,90,0.07); stroke: var(--green); }
+  html[data-dm="light"] svg.dia .box.crit { fill: rgba(185,75,55,0.07); stroke: var(--rust); }
+  html[data-dm="light"] svg.dia .box.main { fill: rgba(217,119,87,0.07); stroke: var(--clay); }
+  html[data-dm="light"] .bug-card.critical .bug-num { background: rgba(185,75,55,0.08); }
+  html[data-dm="light"] .bug-card.wiring .bug-num { background: rgba(201,149,60,0.08); }
+  html[data-dm="light"] .severity-critical { background: rgba(185,75,55,0.06); }
+  html[data-dm="light"] .severity-high { background: rgba(217,119,87,0.06); }
+  html[data-dm="light"] .severity-medium { background: rgba(201,149,60,0.06); }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--ivory);
+    color: var(--g700);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 48px 24px 120px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav { display: none; } }
+
+  /* ── dark mode toggle ─────────────────── */
+  .dm-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1.5px solid var(--g300);
+    background: var(--paper);
+    color: var(--slate);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .dm-toggle:hover { transform: scale(1.08); }
+
+  /* ── nav ──────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    font-size: 13px;
+  }
+  nav .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--g500);
+    margin-bottom: 12px;
+  }
+  nav a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--g300);
+    color: var(--g700);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  nav a:hover { color: var(--slate); border-color: var(--slate); }
+  nav a.l2 { padding-left: 24px; font-size: 12.5px; color: var(--g500); }
+  nav .meta {
+    margin-top: 28px;
+    border-top: 1px solid var(--g300);
+    padding-top: 16px;
+  }
+  nav .meta code {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--g500);
+    padding: 2px 0;
+  }
+  nav .meta .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+  .tag.crit { background: rgba(185,75,55,0.12); color: var(--rust); }
+
+  /* ── header ───────────────────────────── */
+  header { margin-bottom: 8px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--g500);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 34px;
+    color: var(--slate);
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .lead { max-width: 700px; margin-bottom: 24px; }
+  .lead code { font-family: var(--mono); font-size: 13px; }
+
+  .tldr {
+    border: 1.5px solid var(--g300);
+    border-left: 3px solid var(--clay);
+    border-radius: 10px;
+    background: var(--paper);
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  .tldr b { color: var(--slate); }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--slate);
+    margin: 44px 0 16px;
+    scroll-margin-top: 24px;
+    border-bottom: 1.5px solid var(--g200);
+    padding-bottom: 8px;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 19px;
+    color: var(--slate);
+    margin: 28px 0 10px;
+  }
+  p { margin-bottom: 12px; max-width: 700px; }
+  code { font-family: var(--mono); font-size: 12.5px; }
+  strong { color: var(--slate); }
+
+  /* ── diagram panel ────────────────────── */
+  .diagram-panel {
+    border: 1.5px solid var(--g300);
+    border-radius: 12px;
+    background: var(--paper);
+    padding: 20px;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  svg.dia { display: block; max-width: 100%; margin: 0 auto; }
+  .dia text {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--slate);
+  }
+  .dia .sub { font-size: 9.5px; fill: var(--g500); }
+  .dia .box { fill: var(--paper); stroke: var(--g300); stroke-width: 1.5; rx: 8; }
+  .dia .box.main { fill: rgba(217,119,87,0.07); stroke: var(--clay); }
+  .dia .box.crit { fill: rgba(185,75,55,0.07); stroke: var(--rust); }
+  .dia .box.ok { fill: rgba(91,140,90,0.07); stroke: var(--green); }
+  .dia .arrow { stroke: var(--g500); stroke-width: 1.5; fill: none; }
+
+  /* ── bug cards (interactive) ──────────── */
+  .bug-card {
+    border: 1.5px solid var(--g300);
+    border-radius: 12px;
+    background: var(--paper);
+    margin: 18px 0;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .bug-card:hover { border-color: var(--g500); }
+  .bug-card.open { border-color: var(--clay); }
+  .bug-header {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+    user-select: none;
+  }
+  .bug-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    border: 1.5px solid var(--g300);
+    background: var(--g100);
+    flex-shrink: 0;
+  }
+  .bug-card.critical .bug-num { border-color: var(--rust); color: var(--rust); background: rgba(185,75,55,0.08); }
+  .bug-card.wiring .bug-num { border-color: var(--amber); color: var(--amber); background: rgba(201,149,60,0.08); }
+  .bug-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--slate);
+    font-weight: 500;
+  }
+  .bug-severity {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 3px 10px;
+    border-radius: 5px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .severity-critical { color: var(--rust); border-color: var(--rust); background: rgba(185,75,55,0.06); }
+  .severity-high { color: var(--clay-d); border-color: var(--clay); background: rgba(217,119,87,0.06); }
+  .severity-medium { color: var(--amber); border-color: var(--amber); background: rgba(201,149,60,0.06); }
+  .bug-arrow { text-align: center; font-size: 12px; color: var(--g500); font-family: var(--mono); padding: 2px 0; }
+  .bug-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .bug-card.open .bug-body { max-height: 2000px; }
+  .bug-body-inner {
+    padding: 0 16px 18px;
+    border-top: 1px solid var(--g200);
+    padding-top: 14px;
+  }
+  .bug-body-inner ul { padding-left: 20px; margin: 8px 0; }
+  .bug-body-inner li { margin-bottom: 6px; font-size: 14px; }
+  .bug-body-inner p { font-size: 14px; }
+  .bug-body-inner .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--g500);
+    margin-bottom: 4px;
+    margin-top: 14px;
+  }
+  .bug-body-inner .label:first-child { margin-top: 0; }
+
+  .code-block {
+    background: #1A1A1A;
+    color: #E8E6DC;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  .code-block .dim { color: #8A8A8A; }
+  .code-block .err { color: #E8837C; }
+  .code-block .fix { color: #7EC87E; }
+  .code-block .del { color: #E8837C; }
+
+  /* High-contrast inline code in dark mode */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-dm]) p code, :root:not([data-dm]) li code {
+      background: #2A2A2A;
+      color: #E8E6DC;
+    }
+  }
+  html[data-dm="dark"] p code, html[data-dm="dark"] li code {
+    background: #2A2A2A;
+    color: #E8E6DC;
+  }
+  html[data-dm="light"] p code, html[data-dm="light"] li code {
+    background: #F0EEE6;
+    color: #3D3D3A;
+  }
+
+  .commit-hash { font-family: var(--mono); font-size: 11px; color: var(--g500); }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 700px;
+    font-size: 13.5px;
+    margin: 16px 0;
+  }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--g300); }
+  th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--g500);
+    font-weight: 600;
+  }
+  td code { font-size: 12px; }
+
+  .lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .lesson-card {
+    border: 1.5px solid var(--g300);
+    border-radius: 10px;
+    background: var(--paper);
+    padding: 16px;
+  }
+  .lesson-card .icon { font-size: 20px; margin-bottom: 6px; }
+  .lesson-card h4 {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 6px;
+  }
+  .lesson-card p { font-size: 13px; color: var(--g500); margin: 0; }
+
+  .retro-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--g200);
+    font-size: 14px;
+  }
+  .retro-item:last-child { border: none; }
+  .retro-num { font-family: var(--mono); font-size: 12px; color: var(--g500); text-align: center; padding-top: 2px; }
+
+  .commit-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 20px 0;
+    padding-left: 18px;
+    border-left: 2px solid var(--clay);
+  }
+  .commit-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 0;
+    position: relative;
+  }
+  .commit-link::before {
+    content: "";
+    position: absolute;
+    left: -25px;
+    top: 12px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--clay);
+    border: 2px solid var(--ivory);
+  }
+  .commit-link .hash { color: var(--clay); font-weight: 600; }
+  .commit-link .msg { color: var(--slate); }
+
+  .callout {
+    display: flex;
+    gap: 12px;
+    border: 1.5px solid var(--g300);
+    border-left: 3px solid var(--sky);
+    border-radius: 10px;
+    background: var(--paper);
+    padding: 14px 16px;
+    margin: 16px 0;
+    max-width: 700px;
+    font-size: 14px;
+  }
+  .callout .emoji { font-size: 18px; flex-shrink: 0; }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--g300);
+    font-size: 12px;
+    color: var(--g500);
+    grid-column: 1 / -1;
+  }
+</style>
+</head>
+<body>
+<button class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()" title="Toggle dark/light mode"></button>
+<div class="page">
+
+  <nav>
+    <div class="label">Contents</div>
+    <a href="#overview">Overview</a>
+    <a class="l2" href="#arch">Architecture</a>
+    <a class="l2" href="#bugs">Bug chain</a>
+    <a class="l2" href="#fix1">Bug 1: Wiring</a>
+    <a class="l2" href="#fix2">Bug 2: Toggle</a>
+    <a class="l2" href="#fix3">Bug 3: Cleanup</a>
+    <a class="l2" href="#fix4">Bug 4: Drift</a>
+    <a class="l2" href="#fix5">Bug 5: Syntax</a>
+    <a href="#retro">Retrospective</a>
+    <a class="l2" href="#lessons">Lessons</a>
+    <a class="l2" href="#patterns">Patterns</a>
+    <div class="meta">
+      <div class="label">Version</div>
+      <code>fix-&gt;codex_update<br>_26.506.20924</code>
+      <span class="tag crit">5 critical bugs</span>
+    </div>
+  </nav>
+
+  <main>
+
+    <header>
+      <div class="eyebrow">codex-plusplus-reasoning-fixes · debugging chronicle</div>
+      <h1>How 5 bugs — one a blank-screen syntax error — were found and fixed</h1>
+      <p class="lead">
+        The <code>codex-plusplus-reasoning-fixes</code> tweak intercepts Codex's renderer bundles and patches JavaScript at load time.
+        In the span of one evening, <strong>5 independent bugs</strong> were identified and fixed across the <code>fix&gt;codex_update_26.506.20924</code> branch.
+        Two of them needed multiple attempts. One produced a completely blank conversation view.
+      </p>
+      <div class="tldr">
+        <b>TL;DR:</b> A chain of 5 commits fixed a blank-screen syntax error (declaration inside a declaration),
+        3 bundle-target drifts where patches silently stopped working, a toggle that did nothing,
+        a stale-closure cleanup failure, and 3 wiring gaps. Two of the fixes introduced follow-on bugs
+        that the next commit caught — a vivid example of how source patching amplifies small mistakes.
+      </div>
+    </header>
+
+    <h2 id="overview">Overview</h2>
+    <p>
+      Before diving into each bug, it helps to understand the architecture — because every bug traced back to
+      a mismatch between what the <strong>patcher expects</strong> and what <strong>Codex actually serves</strong>.
+    </p>
+
+    <h3 id="arch">Architecture</h3>
+    <div class="diagram-panel">
+      <svg class="dia" viewBox="0 0 820 300" width="820" height="300" role="img" aria-label="Architecture diagram">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#87867F"/>
+          </marker>
+        </defs>
+        <!-- Row 1: Main process -->
+        <g>
+          <rect class="box main" x="40" y="20" width="200" height="64" rx="10"/>
+          <text x="140" y="48" text-anchor="middle">Main Process</text>
+          <text class="sub" x="140" y="64" text-anchor="middle">source-patcher.js</text>
+        </g>
+        <g>
+          <rect class="box" x="310" y="20" width="180" height="64" rx="10"/>
+          <text x="400" y="48" text-anchor="middle">protocol.handle</text>
+          <text class="sub" x="400" y="64" text-anchor="middle">intercepts app:// loads</text>
+        </g>
+        <g>
+          <rect class="box ok" x="560" y="20" width="200" height="64" rx="10"/>
+          <text x="660" y="48" text-anchor="middle">patchSource()</text>
+          <text class="sub" x="660" y="64" text-anchor="middle">regex + replace per bundle</text>
+        </g>
+        <!-- Row 1 arrows -->
+        <line class="arrow" x1="240" y1="52" x2="308" y2="52" marker-end="url(#ah)"/>
+        <line class="arrow" x1="490" y1="52" x2="558" y2="52" marker-end="url(#ah)"/>
+        <text class="sub" x="275" y="42" text-anchor="middle">monkey-patches</text>
+        <text class="sub" x="525" y="42" text-anchor="middle">regex replace</text>
+        <!-- Vertical connectors -->
+        <line class="arrow" x1="660" y1="84" x2="660" y2="158" marker-end="url(#ah)"/>
+        <line class="arrow" x1="140" y1="84" x2="140" y2="158" marker-end="url(#ah)"/>
+        <text class="sub" x="670" y="124" text-anchor="start">patched JS</text>
+        <text class="sub" x="68" y="124" text-anchor="start">IPC: source-patches-v1</text>
+        <!-- Row 2: Renderer -->
+        <g>
+          <rect class="box main" x="40" y="160" width="200" height="64" rx="10"/>
+          <text x="140" y="188" text-anchor="middle">Renderer Process</text>
+          <text class="sub" x="140" y="204" text-anchor="middle">index.js</text>
+        </g>
+        <g>
+          <rect class="box" x="310" y="160" width="180" height="64" rx="10"/>
+          <text x="400" y="188" text-anchor="middle">Settings UI</text>
+          <text class="sub" x="400" y="204" text-anchor="middle">toggles + IPC</text>
+        </g>
+        <g>
+          <rect class="box ok" x="560" y="160" width="200" height="64" rx="10"/>
+          <text x="660" y="188" text-anchor="middle">FEATURES</text>
+          <text class="sub" x="660" y="204" text-anchor="middle">runtime DOM effects</text>
+        </g>
+        <!-- Row 2 arrow -->
+        <line class="arrow" x1="220" y1="192" x2="308" y2="192" marker-end="url(#ah)"/>
+        <!-- Bottom annotations -->
+        <text class="sub" x="50" y="254" text-anchor="start">PATCHES = { "fix-assistant-order": { bundle, unpatched, patched, replacement }, ... }</text>
+        <text class="sub" x="50" y="272" text-anchor="start">SETTING_FEATURES = { "show-reasoning": ["fix-assistant-order", "no-layout-position", ...] }</text>
+      </svg>
+    </div>
+    <p>
+      <strong>Key insight:</strong> The patcher has <strong>two independent registration systems</strong>.
+      <code>PATCHES</code> defines text transformations. <code>SETTING_FEATURES</code> maps settings to
+      which patches should activate. <code>FEATURES</code> (in index.js) handles runtime DOM effects that
+      don't need source patching. When these three systems get out of sync, bugs emerge.
+    </p>
+
+    <h2 id="bugs">The bug chain</h2>
+    <p>
+      The fixes were applied in this order. The arrows show <strong>dependency</strong> — not chronology alone.
+      Fix 3 (idempotency guard) couldn't exist without Fix 2 (toggle wiring).
+      Fix 5 (syntax error) was a side-effect of Fix 1's sub-fix.
+    </p>
+    <div class="commit-chain">
+      <div class="commit-link"><span class="hash">da0e3e9</span> <span class="msg">repair 3 bugs in source-patch wiring</span></div>
+      <div class="commit-link"><span class="hash">29810e3</span> <span class="msg">collapse-all-toggle toggle now actually works</span></div>
+      <div class="commit-link"><span class="hash">afde18c</span> <span class="msg">_collapseCleanup uses dynamic DOM lookup</span></div>
+      <div class="commit-link"><span class="hash">04f78a0</span> <span class="msg">repair 3 unsupported patches by correcting bundle targets</span></div>
+      <div class="commit-link"><span class="hash">99f25ce</span> <span class="msg">fix-assistant-order syntax error — O=null without let</span></div>
+    </div>
+
+    <!-- Bug 1 -->
+    <h2 id="fix1">Bug 1: The wiring gaps</h2>
+    <div class="bug-card wiring open" onclick="toggleCard(this)">
+      <div class="bug-header">
+        <div class="bug-num">1</div>
+        <div class="bug-title">Three patches silently never activated</div>
+        <span class="bug-severity severity-medium">wiring</span>
+      </div>
+      <div class="bug-body">
+        <div class="bug-body-inner">
+          <div class="label">commit</div>
+          <p><span class="commit-hash">da0e3e9</span></p>
+          <div class="label">observation</div>
+          <p>Three distinct symptoms with the same root cause — the PATCHES/SETTING_FEATURES/FEATURES registration systems had drifted apart.</p>
+          <div class="label">symptoms</div>
+          <table>
+            <tr><th>Bug</th><th>Symptom</th><th>Root cause</th></tr>
+            <tr><td><strong>1a</strong></td><td><code>no-layout-position-composer</code> patch never ran</td><td>Defined in <code>PATCHES</code> but missing from every <code>SETTING_FEATURES</code> group</td></tr>
+            <tr><td><strong>1b</strong></td><td>Two UI toggles (<em>show-tool-outputs</em>, <em>disable-streaming-pulse</em>) did nothing</td><td>Backing patches removed in refactor, but UI and sync code left behind</td></tr>
+            <tr><td><strong>1c</strong></td><td><code>fix-assistant-order</code> always showed "unsupported" after patching</td><td><code>replacement</code> started with <code>O=null;</code> but <code>patched</code> regex expected <code>let O=null;</code></td></tr>
+          </table>
+          <div class="label">fix</div>
+          <div class="code-block">
+            <span class="dim">// 1a: Add missing patch to SETTING_FEATURES</span>
+            <span class="fix">+ "no-layout-position-composer",</span>
+            <span class="dim">// 1b: Remove dead settings from defaults, UI, and sync lists</span>
+            <span class="del">- "show-tool-outputs": false,</span>
+            <span class="del">- "disable-streaming-pulse": true,</span>
+            <span class="dim">// 1c: Align replacement with patched regex</span>
+            <span class="del">- replacement: "O=null;..."</span>
+            <span class="fix">+ replacement: "let O=null;..."</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bug-arrow">&#x2B07; Fix 1c created a latent syntax error that would surface later as a blank screen &#x2B07;</div>
+
+    <!-- Bug 2 -->
+    <h2 id="fix2">Bug 2: The toggle that did nothing</h2>
+    <div class="bug-card wiring" onclick="toggleCard(this)">
+      <div class="bug-header">
+        <div class="bug-num">2</div>
+        <div class="bug-title">"collapse-all-toggle" setting — no runtime wiring</div>
+        <span class="bug-severity severity-medium">wiring</span>
+      </div>
+      <div class="bug-body">
+        <div class="bug-body-inner">
+          <div class="label">commit</div>
+          <p><span class="commit-hash">29810e3</span></p>
+          <div class="label">observation</div>
+          <p>The settings UI showed a toggle labeled "Show collapse-all button" (default: on). Turning it off and back on did nothing. The button was always visible.</p>
+          <div class="label">investigation</div>
+          <p>Found in <code>state.defaults</code> and <code>renderSettings()</code> UI but <strong>not</strong> in the <code>FEATURES</code> object. <code>activateFeature('collapse-all-toggle')</code> logged "unknown feature" and returned.</p>
+          <div class="label">fix</div>
+          <ul>
+            <li><strong>Always</strong> create the button at startup (start hidden if disabled)</li>
+            <li>Add a <code>FEATURES</code> entry that shows/hides via <code>display: none/flex</code></li>
+            <li>Make <code>setupCollapseAllButton</code> idempotent (skip if button DOM exists)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bug 3 -->
+    <h2 id="fix3">Bug 3: The cleanup that silently failed</h2>
+    <div class="bug-card" onclick="toggleCard(this)">
+      <div class="bug-header">
+        <div class="bug-num">3</div>
+        <div class="bug-title">Stale closure in _collapseCleanup after idempotency guard</div>
+        <span class="bug-severity severity-medium">closure</span>
+      </div>
+      <div class="bug-body">
+        <div class="bug-body-inner">
+          <div class="label">commit</div>
+          <p><span class="commit-hash">afde18c</span></p>
+          <div class="label">observation</div>
+          <p>After hot-reload, stopping the plugin left the collapse-all button and CSS style element orphaned in the DOM.</p>
+          <div class="label">root cause</div>
+          <p>Fix 2 added an idempotency guard (<code>if (document.getElementById("rft-btn")) return;</code>). When this fires, local variables <code>btn</code> and <code>styleEl</code> are never assigned. The cleanup closure captured those null variables and silently did nothing.</p>
+          <div class="label">fix</div>
+          <p>Look up DOM elements at cleanup time instead of capturing in a closure.</p>
+          <div class="code-block">
+            <span class="fix">+ _collapseCleanup = function() {</span>
+            <span class="fix">+   var b = document.getElementById("rft-btn");</span>
+            <span class="fix">+   if (b && b.parentNode) b.parentNode.removeChild(b);</span>
+            <span class="fix">+ };</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bug 4 -->
+    <h2 id="fix4">Bug 4: Bundle targets drifted during Codex update</h2>
+    <div class="bug-card wiring" onclick="toggleCard(this)">
+      <div class="bug-header">
+        <div class="bug-num">4</div>
+        <div class="bug-title">Three patches targeting wrong bundles + inspectRule misclassification</div>
+        <span class="bug-severity severity-high">drift</span>
+      </div>
+      <div class="bug-body">
+        <div class="bug-body-inner">
+          <div class="label">commit</div>
+          <p><span class="commit-hash">04f78a0</span></p>
+          <div class="label">observation</div>
+          <p>The status API reported "unsupported" for 3 patches.</p>
+          <div class="label">investigation</div>
+          <table>
+            <tr><th>Patch</th><th>Configured bundle</th><th>Actual bundle</th></tr>
+            <tr><td><code>auto-expand-exec</code></td><td><code>lt</code></td><td><code>thread</code></td></tr>
+            <tr><td><code>expand-tool-activity</code></td><td><code>settings-page</code></td><td><code>thread</code> (x3)</td></tr>
+            <tr><td><code>no-layout-position-composer</code></td><td><code>composer</code></td><td>no longer exists</td></tr>
+          </table>
+          <div class="label">fix</div>
+          <div class="code-block">
+            <span class="del">- bundle: "lt",          </span><span class="fix">+ bundle: "thread",</span>
+            <span class="del">- bundle: "settings-page",</span><span class="fix">+ bundle: "thread",</span>
+            <span class="del">- if (count === 1)       </span><span class="fix">+ if (count >= 1)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bug 5 -->
+    <h2 id="fix5">Bug 5: The blank-screen syntax error</h2>
+    <div class="bug-card critical" onclick="toggleCard(this)">
+      <div class="bug-header">
+        <div class="bug-num">5</div>
+        <div class="bug-title"><code>fix-assistant-order</code> produced invalid JS — SyntaxError → blank view</div>
+        <span class="bug-severity severity-critical">CRITICAL</span>
+      </div>
+      <div class="bug-body">
+        <div class="bug-body-inner">
+          <div class="label">commit</div>
+          <p><span class="commit-hash">99f25ce</span></p>
+          <div class="label">symptom</div>
+          <p><strong>Blank conversation view.</strong> The chat rendered as an empty white page. No errors in the console beyond a generic SyntaxError.</p>
+          <div class="label">root cause</div>
+          <p>The replacement started with <code>let O=null;</code> but the surrounding code already had <code>let T=...,E=...,</code>. This produced a <code>let</code> inside a comma-separated <code>let</code> declaration — a SyntaxError in strict mode. The bundle failed to parse, React never mounted.</p>
+          <p>This was a direct side-effect of Fix 1c: adding <code>let</code> to match the patched regex broke the surrounding context.</p>
+          <div class="label">fix</div>
+          <div class="code-block">
+            <span class="del">- replacement: "let O=null;for(...){...}let k=..."</span>
+            <span class="fix">+ replacement: "O=null;for(...){...}let k=..."</span>
+          </div>
+          <div class="label">tradeoff</div>
+          <p>The <code>patched</code> regex no longer matches (it still expects <code>let</code>), so <code>inspectRule()</code> returns "unsupported". But the patch works correctly. Priority: renderer correctness over status accuracy.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Retrospective -->
+    <h2 id="retro">Retrospective</h2>
+    <p>These 5 bugs share two recurring themes: <strong>registering in one system but not another</strong>, and <strong>assuming context (surrounding code, bundle location) that silently changes</strong>.</p>
+
+    <div class="callout">
+      <span class="emoji">&#x1F4A1;</span>
+      <div>
+        <b>Pattern detection:</b> Every bug except Bug 3 (closure) was a <strong>registration or mapping gap</strong>.
+        Bug 5 was the only bug that produced a visible crash — and it was the hardest to detect because
+        it required understanding the <em>surrounding code context</em> where the replacement lands.
+      </div>
+    </div>
+
+    <h3 id="lessons">5 lessons for the next patch</h3>
+    <div class="lessons-grid">
+      <div class="lesson-card">
+        <div class="icon">&#x1F517;</div>
+        <h4>"let" inside "let"</h4>
+        <p>A replacement that's correct in isolation may break the surrounding declaration context. Always read the ~20 characters before and after the injection point.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="icon">&#x1F512;</div>
+        <h4>Idempotency breaks closures</h4>
+        <p>Adding an early-return guard silently invalidates closures that capture variables initialized below. Always check cleanup/unmount paths.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="icon">&#x1F501;</div>
+        <h4>Multi-occurrence needs <code>g</code></h4>
+        <p>If a pattern can appear N times, use the <code>g</code> flag and <code>&gt;= 1</code> not <code>=== 1</code>. Otherwise the patch is silently skipped.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="icon">&#x1F5D1;</div>
+        <h4>Remove dead toggle UI</h4>
+        <p>When a refactor removes a patch, also remove its UI toggle. Rendered-but-inert toggles erode user trust.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="icon">&#x1F9EA;</div>
+        <h4>Validate replacements as JS</h4>
+        <p>Run every patch's replacement as <code>.mjs</code> through a syntax check. A 2-line script would have caught Bug 5 before deployment.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="icon">&#x1F5FA;</div>
+        <h4>Version-pin bundle targets</h4>
+        <p>Store the Codex version alongside bundle mappings and warn on drift. The current system says "unsupported" which doesn't guide repair.</p>
+      </div>
+    </div>
+
+    <h3 id="patterns">Approaches considered and rejected</h3>
+    <div class="retro-item">
+      <div class="retro-num">1</div>
+      <div>
+        <strong>Auto-detect bundle on "unsupported"</strong> — search ALL bundles for the unpatched pattern.
+        <br>&#x274C; <em>Rejected:</em> O(n²) per asset load. Bundles are hundreds of KB.
+      </div>
+    </div>
+    <div class="retro-item">
+      <div class="retro-num">2</div>
+      <div>
+        <strong>Block-scope wrapper for fix-assistant-order</strong> — wrap injected code in <code>{ ... }</code>.
+        <br>&#x274C; <em>Rejected:</em> Changing structural boundaries could break control flow or return semantics.
+      </div>
+    </div>
+    <div class="retro-item">
+      <div class="retro-num">3</div>
+      <div>
+        <strong>Update <code>patched</code> regex to match <code>O=null;</code></strong> (without <code>let</code>).
+        <br>&#x274C; <em>Not applied:</em> The "unsupported" status is misleading but harmless — the patch runs correctly.
+      </div>
+    </div>
+
+    <footer>
+      <p>Generated from the <code>fix&gt;codex_update_26.506.20924</code> branch · 5 commits · 2 files changed · -40/+31 net lines</p>
+      <p style="margin-top:4px;">Cognitive apprenticeship modelling — observations, hypotheses, investigation, narrowing, solution, and retrospective for each bug.</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  function toggleCard(el) {
+    el.classList.toggle('open');
+  }
+  document.querySelectorAll('.bug-card').forEach(function(card) {
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleCard(this);
+      }
+    });
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-expanded', 'false');
+    card.addEventListener('click', function() {
+      var expanded = this.classList.contains('open');
+      this.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+  });
+
+  // ── dark mode toggle ──
+  function toggleDarkMode() {
+    var html = document.documentElement;
+    var current = html.getAttribute('data-dm');
+    if (current === 'dark') {
+      html.setAttribute('data-dm', 'light');
+    } else if (current === 'light') {
+      html.removeAttribute('data-dm');
+    } else {
+      html.setAttribute('data-dm', 'dark');
+    }
+    updateToggleIcon();
+    try { localStorage.setItem('reasoning-chronicle-dm', html.getAttribute('data-dm') || ''); } catch(e) {}
+  }
+
+  function updateToggleIcon() {
+    var dm = document.documentElement.getAttribute('data-dm');
+    var btn = document.getElementById('dmToggle');
+    if (dm === 'dark') btn.textContent = '\u2600\uFE0F';
+    else if (dm === 'light') btn.textContent = '\uD83C\uDF19';
+    else {
+      btn.textContent = window.matchMedia('(prefers-color-scheme: dark)').matches ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    }
+  }
+
+  (function() {
+    try {
+      var pref = localStorage.getItem('reasoning-chronicle-dm');
+      if (pref === 'dark') document.documentElement.setAttribute('data-dm', 'dark');
+      else if (pref === 'light') document.documentElement.setAttribute('data-dm', 'light');
+      updateToggleIcon();
+    } catch(e) {}
+  })();
+</script>
+
+</body>
+</html>

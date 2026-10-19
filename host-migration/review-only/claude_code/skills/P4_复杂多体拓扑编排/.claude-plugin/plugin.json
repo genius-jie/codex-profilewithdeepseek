@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "P4_复杂多体拓扑编排",
+  "version": "1.0.0",
+  "description": "Custom skill: P4_复杂多体拓扑编排",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

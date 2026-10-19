@@ -1,0 +1,3 @@
+display_name: "TopHub Remote Deploy"
+short_description: "Deploy, rollback, and verify TopHub."
+default_prompt: "Use $tophub-remote-deploy to deploy or rollback TopHub and verify the public service."

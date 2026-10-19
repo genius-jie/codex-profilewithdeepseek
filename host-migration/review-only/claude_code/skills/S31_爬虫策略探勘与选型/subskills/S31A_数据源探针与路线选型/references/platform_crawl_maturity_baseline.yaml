@@ -1,0 +1,460 @@
+schema_version: platform_crawl_maturity_baseline.v1
+generated_from: tophub-daily-trend-radar/docs/w11-p3-evidence/s31-platform-fact-maturity-matrix-20260610.json
+last_verified: '2026-06-11'
+source_family_mapping:
+  marketplace_review: commerce_marketplace
+  resale_listing: secondhand_marketplace
+  content_social: social_content
+  community_forum: forum_community
+  local_life_review: local_life_review
+  search_discovery: search_news
+closure_policy:
+  fact_source_target: M5
+  discovery_source_target: discovery_closure
+  discovery_source_families:
+  - search_news
+  discovery_m5_exempt: true
+  discovery_fact_import_allowed: false
+scheduler_policy:
+  provider: OpenClaw Cron
+  owner_skill: '@@OPENCLAW_ROOT:win@@\.agents\skills\S28_定时任务编排\SKILL.md'
+  runtime_source_of_truth: '@@USERPROFILE:win@@\.openclaw\cron\jobs.json'
+  registration_command: openclaw cron add|edit|list
+  s31_boundary: S31/OpenCLI only produces repeatable collection commands, receipts, and fact packs; scheduled execution belongs to OpenClaw Cron.
+  forbidden_local_scripts:
+  - daily_crawl_orchestrator.py
+maturity_policy:
+- tier: M5
+  label: Sealed Fact Source
+  route_behavior: priority_route
+- tier: M4
+  label: Stable Reference Route
+  route_behavior: priority_route
+- tier: M3
+  label: Partial Fact Route
+  route_behavior: extensible_route
+- tier: M2
+  label: Controlled/Recovery Route
+  route_behavior: controlled_input
+- tier: M1
+  label: Discovery Only
+  route_behavior: discovery_handoff_only
+- tier: M0
+  label: Skipped/Unproven
+  route_behavior: skipped
+platforms:
+  douyin_ecommerce:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: commerce_marketplace
+    selected_strategy: api
+    review_surface: 商品评论、评分、销量、SKU；抖音电商行与普通话题/视频行分离
+    known_friction: 高风险登录态；停止于登录、二维码、验证码或风控
+    adapter_status: 'S31C competitor_review_adapters.py: controlled input adapter; live risk stops at auth/captcha/risk/blank/system-busy
+      and accepts human-captured rows.'
+    route_quality_gate: E-commerce review rows must be separated from Douyin topic/video rows; stop on login or challenge.
+    adapter_capability: controlled_input_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/douyin_ecommerce_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_controlled
+    contract_level: L2_controlled_with_autofix
+    opencli_native_commands: 16
+  douyin:
+    maturity_tier: M2
+    label: Controlled/Recovery Route
+    source_family: social_content
+    selected_strategy: opencli
+    review_surface: 话题、视频、评论、互动指标；视频/话题行默认是 topic_signal
+    known_friction: 高风险登录态、风控、滚动与评论展开限制
+    adapter_status: 'S31C competitor_review_adapters.py: controlled input adapter; live risk stops at auth/captcha/risk/blank/system-busy
+      and accepts human-captured rows.'
+    route_quality_gate: Topic/video rows are topic_signal until comments or transcript evidence is collected.
+    adapter_capability: controlled_input_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/douyin_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_controlled
+    contract_level: L2_controlled_with_autofix
+    opencli_native_commands: 16
+  jd:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: commerce_marketplace
+    selected_strategy: api
+    review_surface: 商品评论、追评、好评率、SKU、item-level comment endpoint
+    known_friction: 中等反爬；需要 SKU allow-list 和评论分页节奏
+    adapter_status: 'S31C competitor_review_adapters.py: JD closure receipt closed search/detail/comment data plane on 2026-06-19; central scheduler registration added for repeatable run and dedupe gates.'
+    route_quality_gate: SKU allow-list and item-level comment endpoint or controlled capture required.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/jd_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 6
+  xianyu:
+    maturity_tier: M4
+    label: Stable Reference Route
+    source_family: secondhand_marketplace
+    selected_strategy: browser
+    review_surface: 二手挂牌、价格、描述、卖家文本、成色和转手原因
+    known_friction: 高风险登录态、风控、搜索和详情页加载限制
+    adapter_status: 'S31C competitor_review_adapters.py: controlled input adapter; live risk stops at auth/captcha/risk/blank/system-busy
+      and accepts human-captured rows.'
+    route_quality_gate: Resale rows are churn/price signals unless description contains explicit defect or complaint.
+    adapter_capability: controlled_input_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/xianyu_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_controlled
+    contract_level: L2_controlled_with_autofix
+    opencli_native_commands: 7
+  xiaohongshu:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: social_content
+    selected_strategy: opencli
+    review_surface: 搜索、笔记、评论、视频、可见竞品上下文
+    known_friction: 高风险登录态、弹框、评论翻页和风控；账号封禁时只能未登录受控
+    adapter_status: 'S31C competitor_review_adapters.py: Xiaohongshu closure receipt and merged data-plane audit closed search/detail/comment/media on 2026-06-21;
+      OpenCLI shard route remains controlled and stops at auth/captcha/risk/blank/system-busy.'
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    route_quality_gate: S31C fact pack required for live runs; PG reuse rows must expose visible competitor context.
+    specialized_adapter_ref: subskills/S31C_内容平台事实采集/scripts/xiaohongshu_fact_probe.py
+    adapter_capability: controlled_input_adapter
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/xiaohongshu_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 20
+  amazon:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: commerce_marketplace
+    selected_strategy: opencli
+    review_surface: 商品评论、评分、标题、正文、时间、ASIN
+    known_friction: 中等反爬、地域差异、评论翻页限速；review_samples 为空时不能当作评论事实
+    adapter_status: 'S31C competitor_review_adapters.py: public live/OpenCLI adapter; 2026-06-19 closure receipt
+      closed Amazon search/detail/comment data plane with PG readback and API smoke; review rows import only when
+      OpenCLI discussion review_samples or HTML review cards are non-empty.'
+    route_quality_gate: ASIN/query allow-list or product review URL required; search/product rows can import as product facts;
+      review facts require item-level review rows.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/amazon_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 3
+  appstore:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: forum_community
+    selected_strategy: browser
+    review_surface: 公开 RSS/App 评论、星级、标题、正文、版本、时间
+    known_friction: 低风险公开源；区域与应用 ID 需要明确
+    adapter_status: 'S31C competitor_review_adapters.py: App Store closure receipt closed search/detail/comment
+      data plane; OpenCLI native suggest/lookup/reviews commands and public RSS preserve rating, app version, and vote count.'
+    route_quality_gate: OpenCLI Browser review rows or public RSS rows only; app_id/country required; 1-3 star or explicit negative text before negative fact import.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/appstore_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: browser_bridge
+    opencli_strategy: browser_bridge_fallback
+    contract_level: L1_browser_bridge
+    opencli_native_commands: 3
+  dianping:
+    maturity_tier: M2
+    label: Controlled/Recovery Route
+    source_family: local_life_review
+    selected_strategy: opencli
+    review_surface: 店铺可见评论、评分、作者、时间、shop_id
+    known_friction: 中到高风险；美团安全验证（Yoda 验证码）、登录弹框、评论加载延迟
+    adapter_status: 'S31C review_platform_adapters/dianping.py: public live/OpenCLI native CLI adapter;
+      calls opencli dianping comments with HTTP fallback.'
+    route_quality_gate: Shop ID or shop URL required; review text body must be non-empty
+      and longer than 6 chars.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/dianping_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 3
+  bilibili:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: social_content
+    selected_strategy: api
+    review_surface: 视频元数据、评论、弹幕、字幕/转录
+    known_friction: 中等反爬；评论/弹幕分页和视频证据需分层
+    adapter_status: 'S31C competitor_review_adapters.py: Bilibili closure receipt closed search/detail/comment/media
+      data plane; OpenCLI native search/video/comments/subtitle commands are located.'
+    route_quality_gate: Video metadata is topic_signal; comments/danmaku/transcript can become observed complaint evidence.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/bilibili_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 4
+  public_article:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: forum_community
+    selected_strategy: ssr_json
+    review_surface: 公开文章正文、发布时间、作者、链接、可见竞品上下文
+    known_friction: 低风险；站点差异大，需可读正文和发布时间
+    adapter_status: 'S31C competitor_review_adapters.py: public article closure receipt closed readable
+      search/detail data plane with visible competitor context; OpenCLI web read command is located.'
+    route_quality_gate: Registry-seeded readable article body only; emitted facts require visible competitor context, negative/risk
+      signal, item URL, and fresh publish time.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/public_article_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: browser_bridge_fallback
+    contract_level: L1_browser_bridge
+    opencli_native_commands: 1
+  reddit:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: forum_community
+    selected_strategy: opencli
+    review_surface: 帖子、评论、subreddit、时间、投票、thread URL
+    known_friction: 低到中等；公开接口/页面速率限制
+    adapter_status: 'S31C competitor_review_adapters.py: maturity matrix seals Reddit as M5 QUALITY_FACTS_SEALED/STABLE_RECENT_LIVE; OpenCLI reddit search/read live adapter expands thread bodies and comments before fact_pack emission.'
+    route_quality_gate: OpenCLI search rows must be read-expanded into thread/comment evidence before observed fact import.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/reddit_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 0
+  tieba:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: forum_community
+    selected_strategy: browser
+    review_surface: 帖子、楼层评论、贴吧名、时间、可见竞品上下文
+    known_friction: 中等反爬、登录弹框和分页限制
+    adapter_status: 'S31C competitor_review_adapters.py: Tieba closure receipt closed search/detail/comment
+      data plane; OpenCLI native search/read/posts commands are located with controlled risk stop policy.'
+    route_quality_gate: Thread-level URL and visible competitor context required.
+    adapter_capability: controlled_input_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/tieba_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_controlled
+    contract_level: L2_controlled_with_autofix
+    opencli_native_commands: 3
+  trustpilot:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: forum_community
+    selected_strategy: browser
+    review_surface: 品牌 review 页、评分、评论、时间、review id
+    known_friction: 中等反爬；需直接 review 页或稳定 review id
+    adapter_status: 'S31C competitor_review_adapters.py: Trustpilot closure receipt closed search/detail/comment
+      data plane; OpenCLI web read plus HTML/JSON-LD fallback captures review body, rating, publish time, and source URL.'
+    route_quality_gate: Direct review page or stable review id required; browser/HTML rows must include visible review body before fact import.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/trustpilot_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: browser_bridge
+    opencli_strategy: browser_bridge_fallback
+    contract_level: L1_browser_bridge
+    opencli_native_commands: 1
+  yahoo_chiebukuro:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: forum_community
+    selected_strategy: browser
+    review_surface: 问答详情、回答、时间、URL、竞品上下文
+    known_friction: 低风险；搜索摘要只能发现候选
+    adapter_status: 'S31C competitor_review_adapters.py: Yahoo Chiebukuro closure receipt closed search/detail/comment
+      data plane; OpenCLI web read extracts question pages and maps answers into fact_pack comments.'
+    route_quality_gate: Question detail URLs only; browser/HTML rows must include question body or answer text; search snippets are discovery.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/yahoo_chiebukuro_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: browser_bridge
+    opencli_strategy: browser_bridge_fallback
+    contract_level: L1_browser_bridge
+    opencli_native_commands: 1
+  rentio:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: commerce_marketplace
+    selected_strategy: opencli
+    review_surface: 公开商品 review 页、评分、正文、时间、商品上下文
+    known_friction: 低风险但需要明确详情页 URL；review 页深度受商品可见样本影响
+    adapter_status: 'S31C competitor_review_adapters.py: Rentio closure receipt closed product review data plane;
+      OpenCLI native reviews command runs before HTTP review blocks, JSON-LD, and fallback strip parser.'
+    route_quality_gate: Public product review page only; no account action; item-level review URL, body, and visible product
+      context required.
+    adapter_capability: public_live_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/rentio_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 1
+  taobao_tmall:
+    maturity_tier: M5
+    label: Sealed Fact Source
+    source_family: commerce_marketplace
+    selected_strategy: opencli
+    review_surface: 商品评论、追评、图片评、SKU、销量线索
+    known_friction: 高风险登录态、滑块、短信、二维码、风控和评论面隐藏；必须走登录态 OpenCLI profile
+    adapter_status: 'S31C competitor_review_adapters.py: Taobao/Tmall closure receipt and competitor-platform-data-plane-audit
+      closed same-platform search/detail/comment with source-owned offset evidence; route still stops at auth/captcha/risk/blank/system-busy.'
+    route_quality_gate: Logged-in route receipt required; low-volume item allow-list; listing/search rows are product/listing
+      facts, and review facts require visible body/SKU/comment evidence.
+    adapter_capability: controlled_input_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/taobao_tmall_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_controlled
+    contract_level: L2_controlled_with_autofix
+    opencli_native_commands: 5
+  baidu:
+    maturity_tier: M1
+    label: Discovery Only
+    closure_target: discovery_closure
+    m5_required: false
+    source_family: search_news
+    selected_strategy: browser
+    review_surface: 搜索结果、候选 URL、新闻/帖子发现
+    known_friction: 中等反爬；摘要不能作为评价事实
+    adapter_status: 'S31C competitor_review_adapters.py: discovery adapter; emits candidate URLs only, not observed review
+      facts.'
+    route_quality_gate: Discovery only; prefer official platform URLs and avoid importing cached snippets.
+    adapter_capability: discovery_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/baidu_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: discovery_only
+    contract_level: L0_discovery
+    opencli_native_commands: 0
+  bing:
+    maturity_tier: M1
+    label: Discovery Only
+    closure_target: discovery_closure
+    m5_required: false
+    source_family: search_news
+    selected_strategy: api
+    review_surface: 搜索结果、候选 URL、跨平台补充发现
+    known_friction: 低风险；摘要不能作为评价事实
+    adapter_status: 'S31C competitor_review_adapters.py: discovery adapter; emits candidate URLs only, not observed review
+      facts.'
+    route_quality_gate: Discovery only; use as Google cross-check and international coverage supplement.
+    adapter_capability: discovery_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/bing_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: discovery_only
+    contract_level: L0_discovery
+    opencli_native_commands: 0
+  google:
+    maturity_tier: M1
+    label: Discovery Only
+    closure_target: discovery_closure
+    m5_required: false
+    source_family: search_news
+    selected_strategy: browser
+    review_surface: 搜索结果、候选 URL、跨平台发现
+    known_friction: 低到中等；摘要不能作为评价事实
+    adapter_status: 'S31C competitor_review_adapters.py: discovery adapter; emits candidate URLs only, not observed review
+      facts.'
+    route_quality_gate: Discovery only; never direct negative fact.
+    adapter_capability: discovery_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/google_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: discovery_only
+    contract_level: L0_discovery
+    opencli_native_commands: 0
+  weibo:
+    maturity_tier: M0
+    label: Skipped/Unproven
+    source_family: social_content
+    selected_strategy: skipped
+    review_surface: 竞品搜索、帖子、评论尚未形成当前事实证据；热点能力不等于评价 profile
+    known_friction: 高风险登录态、风控、搜索/评论面不稳定
+    adapter_status: 'S31C competitor_review_adapters.py: skipped receipt adapter; emits zero-output diagnosis and does not
+      retry live.'
+    skip_reason: 微博热点能力保留为平台 baseline；竞品评价需用户指定 URL/帖子后重新探针升级到 M2+
+    route_quality_gate: Competitor intelligence requires search/post/comment facts with item-level URL and visible competitor
+      context. Weibo hot rows cannot feed competitor negative counts.
+    adapter_capability: skipped_receipt_adapter
+    adapter_ref: subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/weibo_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: skipped
+    contract_level: L0_skipped
+    opencli_native_commands: 0
+  pinduoduo:
+    maturity_tier: M4
+    label: Stable Reference Route
+    source_family: commerce_marketplace
+    selected_strategy: opencli
+    review_surface: 商品详情、价格、拼团价、销量线索、商品评价行
+    known_friction: 高风控、短验证码频率限制；OpenCLI detail/reviews/search/session_probe 可用，但空结果不能当作无数据
+    adapter_status: 'S31C review_platform_adapters/pinduoduo.py: OpenCLI browser-backed adapter; opencli pinduoduo validate passes detail/reviews/search/session_probe and falls back to controlled input when session/risk blocks.'
+    route_quality_gate: OpenCLI route requires session preflight, item/query identity, visible price/sales or review fields, and explicit source_url; empty live output is session/risk diagnosis, not no data.
+    adapter_capability: public_live_adapter
+    adapter_ref: "subskills/S31C_内容平台事实采集/scripts/competitor_review_adapters.py"
+    sop_ref: "subskills/S31C_内容平台事实采集/references/platform_sops/pinduoduo_crawl_sop.md"
+    execution_standard: opencli_shard
+    shard_runner_ref: "subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py"
+    opencli_provider: site_adapter
+    opencli_strategy: site_adapter_live
+    contract_level: L3_live_with_autofix
+    opencli_native_commands: 4
+adapter_coverage_policy:
+  adapter_ref_scope: Every baseline platform has an executable S31C adapter facade entrypoint.
+  capability_truthfulness: adapter_capability distinguishes public_live, controlled_input, discovery-only, skipped, and controlled/reference
+    routes; adapter_ref alone never means sealed live crawl.

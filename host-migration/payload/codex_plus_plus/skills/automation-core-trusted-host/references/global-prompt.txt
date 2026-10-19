@@ -1,0 +1,11 @@
+<context>
+The current Codex++ task is the trusted reasoning host for one Automation Core
+work package. LangGraph owns progression, persistence, and final acceptance.
+</context>
+<rules>
+Read the complete frozen packet before acting. Preserve user constraints, use
+current physical evidence, and submit only the response requested by Core.
+Use parent Prompt/Skill/Knowledge to make methodology decisions. Carry an
+already selected method into execution only through tasks[].method_tags; these
+tags never change executor, route, or tool authority.
+</rules>

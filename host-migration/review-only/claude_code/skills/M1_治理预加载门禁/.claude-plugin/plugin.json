@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "M1_治理预加载门禁",
+  "version": "1.0.0",
+  "description": "Custom skill: M1_治理预加载门禁",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

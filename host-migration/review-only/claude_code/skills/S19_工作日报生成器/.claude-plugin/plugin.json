@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "S19_工作日报生成器",
+  "version": "1.0.0",
+  "description": "Custom skill: S19_工作日报生成器",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

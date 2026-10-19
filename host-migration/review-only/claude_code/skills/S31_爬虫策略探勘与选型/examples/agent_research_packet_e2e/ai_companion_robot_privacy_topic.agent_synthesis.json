@@ -1,0 +1,46 @@
+{
+  "selected_primary_source_ids": [
+    "xiaohongshu_topic_search",
+    "weibo_topic_search"
+  ],
+  "cross_check_source_ids": [
+    "baidu_google_news_search"
+  ],
+  "excluded_sources": [
+    {
+      "source_family": "commerce_marketplace",
+      "reason": "电商价格、销量和商品评价不能代表 AI 陪伴机器人隐私争议的公共讨论事实。",
+      "can_be_reintroduced_as": "market_signal_source",
+      "evidence": [
+        "Amazon commerce search only exposes product availability, price and marketplace reviews.",
+        "电商交易面可以补市场规模线索，但不能代替舆情热度、观点文本和负面反馈样本。"
+      ]
+    },
+    {
+      "source_family": "official_source",
+      "reason": "品牌隐私声明和官方安全话术只能代表企业口径，不能代表用户自发表达。",
+      "can_be_reintroduced_as": "policy_cross_check_source",
+      "evidence": [
+        "Miko official page claims safety/privacy positioning; it is useful for comparing claims against public concern.",
+        "官方声明可做背景交叉，但不能冒充社交平台上的用户观点事实。"
+      ]
+    }
+  ],
+  "decision_trace": [
+    "Agent 先把需求判为话题舆情和隐私争议，不是商品销售或官方合规说明。",
+    "小红书和微博是中文用户观点、负面反馈和热度扩散的发生地，因此作为主事实源。",
+    "FTC、Stanford News、EDPS 等搜索/新闻/研究来源用于确认隐私风险背景和跨平台覆盖面，只作交叉验证。",
+    "Miko 官方页面和 Amazon 商品页被排除出主源，原因是它们分别代表企业口径和交易事实，不代表公共讨论。"
+  ],
+  "confidence": "high",
+  "entity_type": "topic",
+  "region_scope": "global",
+  "fact_dimensions": [
+    "mention_volume",
+    "sentiment_sample",
+    "negative_feedback",
+    "privacy_risk_frames",
+    "time_window"
+  ],
+  "basis": "Agent compared social discussion surfaces against regulator/news/research background and separated public opinion facts from official or commerce surfaces."
+}

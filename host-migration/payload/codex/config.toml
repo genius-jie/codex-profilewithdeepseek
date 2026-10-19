@@ -1,0 +1,138 @@
+"model_context_window" = 1000000
+"model_auto_compact_token_limit" = 900000
+"model" = "gpt-6.1-sol"
+"review_model" = "gpt-5.5"
+"personality" = "pragmatic"
+"approval_policy" = "never"
+"allow_login_shell" = true
+"sandbox_mode" = "danger-full-access"
+"cli_auth_credentials_store" = "file"
+"chatgpt_base_url" = "https://chatgpt.com/backend-api/"
+"mcp_oauth_credentials_store" = "auto"
+"check_for_update_on_startup" = true
+"web_search" = "live"
+"approvals_reviewer" = "user"
+"service_tier" = "priority"
+"model_reasoning_effort" = "max"
+"plan_mode_reasoning_effort" = "xhigh"
+"model_reasoning_summary" = "detailed"
+"model_verbosity" = "medium"
+
+["windows"]
+"sandbox" = "elevated"
+
+["features"]
+"multi_agent" = true
+"memories" = true
+"hooks" = true
+"js_repl" = false
+
+["features"."context_management"]
+"experimental_mode" = true
+
+["plugins"]
+
+["plugins"."documents@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."spreadsheets@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."presentations@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."figma@figma-plugins"]
+"enabled" = true
+
+["plugins"."supabase@openai-curated"]
+"enabled" = true
+
+["plugins"."figma@openai-curated"]
+"enabled" = true
+
+["plugins"."notion@openai-curated"]
+"enabled" = true
+
+["plugins"."chrome@openai-bundled"]
+"enabled" = true
+
+["plugins"."computer-use@openai-bundled"]
+"enabled" = true
+
+["plugins"."visualize@openai-bundled"]
+"enabled" = true
+
+["plugins"."pdf@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."template-creator@openai-primary-runtime"]
+"enabled" = true
+
+["plugins"."codex-app-tools@openai-bundled"]
+"enabled" = true
+
+["plugins"."code-review@openai-bundled"]
+"enabled" = true
+
+["plugins"."browser@openai-bundled"]
+"enabled" = true
+
+["plugins"."unified-computer-use@openai-bundled"]
+"enabled" = true
+
+["memories"]
+"disable_on_external_context" = false
+
+["desktop"]
+"followUpQueueMode" = "queue"
+"enabled-reasoning-efforts" = ["low", "medium", "high", "xhigh", "ultra", "max"]
+"show-context-window-usage" = true
+"notifications-turn-mode" = "always"
+"conversationDetailMode" = "STEPS_PROSE"
+"toys-confetti-enabled" = true
+"composerPlainTextMode" = false
+"dictationDictionary" = ["codex", "codex++", "Langgraph", "扣的差", "扣的差加加"]
+"appshotSoundEnabled" = false
+"open-local-url-in-target-preference" = "in-app-browser"
+"browser-show-full-url" = false
+"appearanceTheme" = "dark"
+"appearanceDarkCodeThemeId" = "lobster"
+
+["desktop"."appearanceDarkChromeTheme"]
+"accent" = "#ff5c5c"
+"accentSource" = "custom"
+"contrast" = 60
+"ink" = "#e4e4e7"
+"opaqueWindows" = false
+"surface" = "#111827"
+
+["desktop"."appearanceDarkChromeTheme"."fonts"]
+"ui" = "Satoshi"
+
+["desktop"."appearanceDarkChromeTheme"."semanticColors"]
+"diffAdded" = "#22c55e"
+"diffRemoved" = "#ff5c5c"
+"skill" = "#3b82f6"
+
+["desktop"."open-in-target-preferences"]
+"global" = "antigravity"
+
+["mcp_servers"]
+
+["mcp_servers"."windows-computer-use"]
+"command" = "node"
+"args" = ["@@USERPROFILE:escaped@@\\AppData\\Roaming\\codex-plusplus\\tweaks\\co.bennett.windows-computer-use\\mcp-server.js"]
+
+["browser_use"]
+
+["browser_use"."default_origin_policy"]
+"full_cdp_access" = "allow"
+
+["agents"]
+
+["agents"."web_researcher"]
+"description" = "Web researcher subagent for the research skills (research / research-deep / research-report)."
+"config_file" = "agents/web-researcher.toml"
+
+["tui"]
+"screen_reader_detection_done" = true

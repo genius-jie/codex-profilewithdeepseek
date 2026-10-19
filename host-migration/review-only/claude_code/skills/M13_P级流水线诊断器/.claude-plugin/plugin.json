@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "M13_P级流水线诊断器",
+  "version": "1.0.0",
+  "description": "Custom skill: M13_P级流水线诊断器",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

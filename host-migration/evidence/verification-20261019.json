@@ -1,0 +1,126 @@
+{
+  "schema_version": "host-migration-verification.v1",
+  "client_date": "2026-10-19",
+  "scope": "portable package and source-machine isolated Windows restore drill",
+  "hosts": [
+    "codex",
+    "codex_plus_plus",
+    "claude_code"
+  ],
+  "package": {
+    "manifest_entries": 849,
+    "installable_entries": 737,
+    "review_only_entries": 112,
+    "general_reference_files": 364,
+    "general_commit": "449eee774e717e5813b96fa366f19efadcf567d3",
+    "checksums_sha256": "8d42b82b237afe6929011cd5c37732571671f962be369ed64581f55a3b4dfd8a"
+  },
+  "verification": {
+    "unittest": {
+      "command": "python -m unittest discover -s host-migration/tools -p test_migration.py -v",
+      "passed": 12,
+      "failed": 0,
+      "duration_seconds": 21.011,
+      "general_source": "fresh GitHub clone at the pinned commit, outside the original General checkout"
+    },
+    "runtime_drill": [
+      "three physically separate host homes in a new temporary Windows user layout",
+      "Chinese characters, spaces and long paths",
+      "all host, support and Claude managed files restored",
+      "General's original writer creates selected skill Junctions",
+      "real registered SessionStart commands run for all three hosts",
+      "scope output binds each host's own new global prompt and the relocated General entry",
+      "new-computer entry previews without writing",
+      "repeat planning reports identical files and links",
+      "existing different file stops all writes",
+      "single-host selection excludes other host writes",
+      "overlap, traversal and reparse target rejection",
+      "rollback removes only this restore's unchanged files and original Junctions",
+      "user-edited file survives rollback"
+    ],
+    "powershell_parser": {
+      "files": 72,
+      "failures": 0
+    },
+    "node_syntax": {
+      "files": 19,
+      "failures": 0
+    },
+    "source_protection": {
+      "compared_source_files": 366,
+      "changed_files": 0
+    },
+    "staged_credential_scan": {
+      "scope": "entire proposed Git tree",
+      "files": 1001,
+      "findings": 0,
+      "bot_webhook_config_tracked": false
+    },
+    "document_passports": {
+      "package_readme": "valid",
+      "general_handoff_guide": "valid"
+    },
+    "cached_diff_check": {
+      "exit_code": 0
+    }
+  },
+  "whitespace_resolution": {
+    "original_check": "Git reported whitespace in imported snapshots, including Markdown hard-break spaces",
+    "preservation": "payload and review-only retain source literals; .gitattributes limits snapshot whitespace policy to those two data directories",
+    "validation": "fresh cached diff check passed; migration tools and guides retain ordinary whitespace checks; snapshot hashes and interpreter parsing passed",
+    "source_bytes_rewritten_to_silence_check": false
+  },
+  "review": {
+    "mode": "producer self-review and executable negative tests",
+    "independent_reviewer_verdict": "not_claimed",
+    "open_findings_in_reviewed_change": 0,
+    "checked": [
+      "host ownership",
+      "create-only writes",
+      "physical target boundaries",
+      "credential removal",
+      "review-only activation boundary",
+      "native General publication",
+      "rollback preservation"
+    ]
+  },
+  "GOVERNANCE_OBJECT_CRUD_GATE": {
+    "object_class": "Artifact and project-local tooling",
+    "action": "CREATE; update existing navigation references",
+    "ssot_home": "project_scoped_context: host-migration; General method bodies remain in their existing repository",
+    "context_scope": "project_scoped_context",
+    "prompt_knowledge_layer": "project_scoped_context",
+    "os_context_scope": "Project-scoped Context",
+    "registry_update": "package manifest; root README; existing General handoff guide link",
+    "blast_radius": "two repository navigation entries; no live host source write"
+  },
+  "STRUCTURAL_REFERENCE_CHANGE_RECEIPT": {
+    "change_type": "new project migration artifact and navigation links",
+    "changed_file": "host-migration/README.md",
+    "blast_radius": {
+      "skills_affected": [],
+      "indexes_affected": [
+        "README.md"
+      ],
+      "workflows_affected": [],
+      "sops_affected": [
+        "General: docs/howto/github-windows-handoff.md"
+      ]
+    },
+    "sync_completed": true,
+    "remaining_stale": []
+  },
+  "limits": [
+    "A different physical computer was not available for native desktop acceptance.",
+    "Application installation, Windows package identity, account login, provider credentials, service registration, MCP import and real model calls remain target-machine steps.",
+    "Private chat, memory, automation state and business databases are excluded and are not activated by this package.",
+    "Third-party base-instruction overrides and General local-copy differences remain review-only and are not enabled.",
+    "Checksums cover source, templates, tools, guides and manifest; this report is Git-tracked verification evidence outside that checksum loop."
+  ],
+  "privacy_correction": {
+    "detected_before_remote_push": true,
+    "excluded": "business connector config directories and credential-bearing review-only source",
+    "outgoing_history": "only the corrected task commit is published; the intermediate local commit is replaced before push",
+    "regression": "bot hook URL detection and private webhook file exclusion pass in the test suite"
+  }
+}

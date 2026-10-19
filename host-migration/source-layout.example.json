@@ -1,0 +1,30 @@
+{
+  "general": "D:\\AgentAssets\\prompt_Knowledge",
+  "codex": "C:\\Users\\YOUR_NAME\\.codex",
+  "codex_plus_plus": "D:\\CodexPlusPlusProfile\\AppData\\Roaming\\Codex\\.codex",
+  "claude_code": "C:\\Users\\YOUR_NAME\\.claude",
+  "launcher": "C:\\Users\\YOUR_NAME\\.codex-plusplus-config",
+  "adapter": "C:\\Users\\YOUR_NAME\\.cc-switch\\sanitizer",
+  "ccs": "C:\\Users\\YOUR_NAME\\.ccs",
+  "claude_user_config": "C:\\Users\\YOUR_NAME\\.claude.json",
+  "codexpp_source": "D:\\AgentTools\\codex-plusplus\\source",
+  "codexpp_runtime": "D:\\CodexPlusPlusProfile\\AppData\\Roaming\\codex-plusplus",
+  "claude_managed": "C:\\Program Files\\ClaudeCode\\managed-settings.json",
+  "bindings": {
+    "USERPROFILE": "C:\\Users\\YOUR_NAME",
+    "CODEXPP_PROFILE": "D:\\CodexPlusPlusProfile",
+    "PROFILE_REPO": "D:\\AgentAssets\\codex-profilewithdeepseek",
+    "PYTHON_EXE": "C:\\Users\\YOUR_NAME\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "CODEX_PYTHON_EXE": "C:\\Users\\YOUR_NAME\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "POWERSHELL_EXE": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    "NODE_EXE": "C:\\Program Files\\nodejs\\node.exe",
+    "CODEXPP_INSTALL_ROOT": "C:\\Users\\YOUR_NAME\\AppData\\Local\\codex-plusplus",
+    "CLAUDE_MANAGED": "C:\\Program Files\\ClaudeCode",
+    "PROGRAMFILES": "C:\\Program Files",
+    "SYSTEMROOT": "C:\\Windows",
+    "SUITE_ROOT": "E:\\personal-ai-suite",
+    "CORE_ROOT": "E:\\personal-ai-suite\\automation-core",
+    "TESTING_ROOT": "E:\\AI测试用例",
+    "OPENCLAW_ROOT": "D:\\openclaw-mono"
+  }
+}

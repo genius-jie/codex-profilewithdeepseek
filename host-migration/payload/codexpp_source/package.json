@@ -1,0 +1,46 @@
+{
+  "name": "codex-plusplus",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Tweak system for the OpenAI Codex desktop app",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/b-nnett/codex-plusplus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/b-nnett/codex-plusplus/issues"
+  },
+  "homepage": "https://github.com/b-nnett/codex-plusplus#readme",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @codex-plusplus/sdk && npm run build --workspace @codex-plusplus/native-host && npm run build --workspace @codex-plusplus/runtime && npm run build --workspace @codex-plusplus/loader && npm run build --workspace codex-plusplus",
+    "clean": "rm -rf packages/*/dist packages/installer/assets/runtime",
+    "test": "npm run build --workspace @codex-plusplus/sdk && npm run build --workspace @codex-plusplus/native-host && node --import tsx --test packages/*/test/*.test.ts",
+    "audit": "npm audit --workspaces --include-workspace-root",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "codexplusplus": "bin/codexplusplus.js",
+    "codex-plusplus": "bin/codexplusplus.js"
+  },
+  "dependencies": {
+    "@electron/asar": "^3.4.0",
+    "kleur": "^4.1.5",
+    "plist": "^3.1.0",
+    "prompts": "^2.4.2",
+    "sade": "^1.8.1",
+    "tar": "^7.5.2"
+  }
+}

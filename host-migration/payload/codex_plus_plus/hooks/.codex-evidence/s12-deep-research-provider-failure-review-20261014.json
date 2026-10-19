@@ -1,0 +1,8 @@
+{
+  "status": "pass",
+  "evidenceType": "s12-failure-review",
+  "rerun_exit_code": 0,
+  "command_fingerprint": "Set-Location '@@CORE_ROOT:escaped@@'; python -c \"from examples.deep_research_adopter.composition import build_provider; p = build_provider(); print(type(p).__name__\"",
+  "corrected_command_note": "rerun with PYTHONPATH=src; output MethodSkillContextProvider; exit_code=0 (2026-10-14)",
+  "s12_verdict": "root cause was missing PYTHONPATH=src; corrected rerun passes"
+}

@@ -1,0 +1,49 @@
+{
+  "pages": {
+    "https://www.xiaohongshu.com/search_result?keyword=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81": {
+      "title": "小红书 AI 陪伴机器人 隐私 搜索",
+      "description": "Xiaohongshu search page for AI companion robot privacy posts.",
+      "text_sample": "xiaohongshu 小红书 AI 陪伴机器人 隐私 负面 体验 用户帖子 评论 点赞 情绪 儿童 安全 担忧"
+    },
+    "https://www.reddit.com/r/ArtificialInteligence/comments/r3pdbn/has_anyone_purchased_a_miko_3_yet_if_so_why_are/": {
+      "title": "Reddit Miko 3 privacy concerns discussion",
+      "description": "Community discussion about Miko 3 and privacy concerns.",
+      "text_sample": "reddit community AI robot kids privacy concerns camera access video feed parent user question comments forum discussion"
+    },
+    "https://s.weibo.com/weibo?q=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81": {
+      "title": "微博 AI 陪伴机器人 隐私 搜索",
+      "description": "Weibo search page for AI companion robot privacy discussion.",
+      "text_sample": "weibo 微博 AI 陪伴机器人 隐私争议 讨论 最新 转发 评论 热度 舆情 public discussion"
+    },
+    "https://x.com/FTC/status/1966159135742833131": {
+      "title": "FTC on X: AI chatbots acting as companions inquiry",
+      "description": "FTC social post about AI companion chatbot inquiry.",
+      "text_sample": "social content FTC AI chatbots acting as companions inquiry children teens risks discussion reposts comments"
+    },
+    "https://www.ftc.gov/news-events/news/press-releases/2025/09/ftc-launches-inquiry-ai-chatbots-acting-companions": {
+      "title": "FTC Launches Inquiry into AI Chatbots Acting as Companions",
+      "description": "FTC news release about AI chatbots acting as companions.",
+      "text_sample": "FTC news inquiry AI chatbots companions safety children teens risks companies disclosure privacy public policy news events"
+    },
+    "https://news.stanford.edu/stories/2025/10/ai-chatbot-privacy-concerns-risks-research": {
+      "title": "Study exposes privacy risks of AI chatbot conversations - Stanford News",
+      "description": "Stanford News article about privacy risks in AI chatbot conversations.",
+      "text_sample": "Stanford News AI chatbot privacy concerns data retention training data transparency accountability sensitive information research"
+    },
+    "https://www.edps.europa.eu/data-protection/technology-monitoring/techsonar/ai-companions": {
+      "title": "AI companions - European Data Protection Supervisor",
+      "description": "EDPS TechSonar page on AI companions.",
+      "text_sample": "EDPS news privacy AI companions personal data text messages sensitive information voice video biometric data risks"
+    },
+    "https://miko.ai/": {
+      "title": "Miko AI-Powered Robot",
+      "description": "Miko official page.",
+      "text_sample": "official source Miko AI powered robot kids safety privacy claim child safe AI family trust official marketing"
+    },
+    "https://www.amazon.com/s?k=AI+companion+robot+for+kids": {
+      "title": "Amazon search AI companion robot for kids",
+      "description": "Amazon commerce search for AI companion robot products.",
+      "text_sample": "Amazon commerce marketplace AI companion robot kids price reviews product availability listing ratings"
+    }
+  }
+}

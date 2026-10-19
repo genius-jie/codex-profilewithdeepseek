@@ -1,0 +1,6 @@
+# The sealed migration package must survive a fresh Windows clone byte-for-byte.
+host-migration/** -text
+# Snapshots retain source literals and Markdown hard breaks. Their integrity
+# is checked by manifest hashes and interpreter parsers; tools/docs stay strict.
+host-migration/payload/** whitespace=-trailing-space,-space-before-tab
+host-migration/review-only/** whitespace=-trailing-space,-space-before-tab

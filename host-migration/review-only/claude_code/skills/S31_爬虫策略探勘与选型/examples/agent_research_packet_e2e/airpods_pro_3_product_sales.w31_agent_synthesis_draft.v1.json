@@ -1,0 +1,265 @@
+{
+  "schema_version": "w31_agent_synthesis_draft.v1",
+  "review_status": "draft_needs_agent_review",
+  "agent_review_required": true,
+  "source_selection_owner": "agent_synthesis_draft",
+  "packet_schema_version": "w31_agent_research_packet.v1",
+  "source_decision_ref": "airpods_pro_3_product_sales.data_source_decision_receipt.v1.json",
+  "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+  "scenario": "product_sales",
+  "entity_type": "product",
+  "region_scope": "cn",
+  "fact_dimensions": [
+    "price",
+    "sku",
+    "promotion",
+    "review_count",
+    "sales_signal"
+  ],
+  "decision_basis": [
+    "business_fact_authority",
+    "field_coverage",
+    "freshness",
+    "repeatability",
+    "crawl_friction"
+  ],
+  "candidate_summary": [
+    {
+      "source_id": "brand_official_store_cn",
+      "platform": "brand official store",
+      "source_family": "official_source",
+      "role": "primary_fact_source",
+      "priority_rank": 1,
+      "draft_decision": "primary",
+      "score": {
+        "fact_authority": 5,
+        "field_coverage": 4,
+        "freshness": 4,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 20
+      },
+      "score_total": 20,
+      "authority_basis": "品牌官方售卖面最能代表当前官方标价、SKU、库存和促销口径。",
+      "target_fields": [
+        "sku",
+        "list_price",
+        "promotion",
+        "inventory_status"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "evidence_count": 4,
+      "observed_url_count": 4,
+      "evidence_preview": [
+        "search:AirPods Pro 3 SKU 官方店 价格 SKU -> Buy AirPods Pro 3 - Apple (https://www.apple.com/shop/buy-airpods/airpods-pro-3) :: Apple official buying page lists AirPods Pro 3 at $249.00 and shows direct Apple purchase and financing options. | browser_probe:ok title=Buy AirPods Pro 3 - Apple",
+        "search:AirPods Pro 3 SKU 官方店 价格 SKU -> AirPods Pro 3 - Apple (https://www.apple.com/airpods-pro/) :: Apple official product page names AirPods Pro 3, current product features and the buy entry. | browser_probe:ok title=AirPods Pro 3 - Apple"
+      ],
+      "observed_urls": [
+        "https://www.apple.com/shop/buy-airpods/airpods-pro-3",
+        "https://www.apple.com/airpods-pro/",
+        "https://www.amazon.com/Apple-Cancellation-Translation-Headphones-High-Fidelity/dp/B0FQFB8FMG"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。"
+      ],
+      "review_note": "核对它是否真实承载目标事实字段、地域口径和当前时间窗；抓取摩擦不能降低其主事实源地位。"
+    },
+    {
+      "source_id": "jd_tmall_official_store",
+      "platform": "JD/Tmall official store",
+      "source_family": "commerce_marketplace",
+      "role": "primary_fact_source",
+      "priority_rank": 2,
+      "draft_decision": "primary",
+      "score": {
+        "fact_authority": 4,
+        "field_coverage": 5,
+        "freshness": 5,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 21
+      },
+      "score_total": 21,
+      "authority_basis": "电商官方店承载成交价格附近的实时价格、促销、评价数和 SKU 事实。",
+      "target_fields": [
+        "sale_price",
+        "sku",
+        "promotion",
+        "review_count",
+        "seller_name"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "evidence_count": 1,
+      "observed_url_count": 1,
+      "evidence_preview": [
+        "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 京东 / 天猫 官方店搜索 (https://search.jd.com/Search?keyword=AirPods%20Pro%203) :: JD search surface is used to locate Apple official or self-operated listings, SKU choices, price and review counts. | browser_probe:ok title=京东 AirPods Pro 3 搜索"
+      ],
+      "observed_urls": [
+        "https://search.jd.com/Search?keyword=AirPods%20Pro%203"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "jd_tmall",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。",
+        "平台源尚未获得 OpenCLI/platform adapter 状态；必要时补跑平台原生搜索再定稿。"
+      ],
+      "review_note": "核对它是否真实承载目标事实字段、地域口径和当前时间窗；抓取摩擦不能降低其主事实源地位。"
+    },
+    {
+      "source_id": "xiaohongshu_product_posts",
+      "platform": "xiaohongshu",
+      "source_family": "social_content",
+      "role": "cross_check_source",
+      "priority_rank": 3,
+      "draft_decision": "cross_check",
+      "score": {
+        "fact_authority": 2,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 3,
+        "crawl_friction": 3,
+        "total": 15
+      },
+      "score_total": 15,
+      "authority_basis": "社交内容能验证被提及价格和用户口碑，但不代表销售事实。",
+      "target_fields": [
+        "note_count",
+        "sentiment_sample",
+        "mentioned_price"
+      ],
+      "expected_collection_mode": "content_mining_analysis_summary",
+      "evidence_count": 1,
+      "observed_url_count": 1,
+      "evidence_preview": [
+        "search:AirPods Pro 3 SKU 小红书 口碑 价格 -> 小红书 AirPods Pro 3 口碑与价格笔记搜索 (https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203) :: Xiaohongshu search can surface user notes discussing fit, ANC, mentioned purchase price and subjective complaints. | browser_probe:ok title=小红书 AirPods Pro 3 搜索"
+      ],
+      "observed_urls": [
+        "https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "xiaohongshu",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。",
+        "平台源尚未获得 OpenCLI/platform adapter 状态；必要时补跑平台原生搜索再定稿。"
+      ],
+      "review_note": "核对它是否只用于验证主源口径、异常或趋势信号，不被升级成主事实源。"
+    },
+    {
+      "source_id": "xianyu_resale_listing",
+      "platform": "xianyu",
+      "source_family": "secondhand_marketplace",
+      "role": "market_signal_source",
+      "priority_rank": 4,
+      "draft_decision": "exclude",
+      "score": {
+        "fact_authority": 1,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 2,
+        "crawl_friction": 2,
+        "total": 12
+      },
+      "score_total": 12,
+      "authority_basis": "二手挂牌可反映残值，但不能代表新品销售价格。",
+      "target_fields": [
+        "resale_price",
+        "condition",
+        "listing_age"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "evidence_count": 1,
+      "observed_url_count": 1,
+      "evidence_preview": [
+        "search:AirPods Pro 3 SKU 闲鱼 二手 残值 -> 闲鱼 / Goofish AirPods Pro 3 二手搜索 (https://www.goofish.com/search?q=AirPods%20Pro%203) :: Goofish/Xianyu search can show used asking prices, item condition and seller notes."
+      ],
+      "observed_urls": [
+        "https://www.goofish.com/search?q=AirPods%20Pro%203"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "xianyu",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。",
+        "平台源尚未获得 OpenCLI/platform adapter 状态；必要时补跑平台原生搜索再定稿。"
+      ],
+      "review_note": "核对它是否只反映行情、挂牌、残值或交易信号；除非业务目标改变，否则不要进入主事实链。"
+    }
+  ],
+  "proposed_primary_source_ids": [
+    "brand_official_store_cn",
+    "jd_tmall_official_store"
+  ],
+  "proposed_cross_check_source_ids": [
+    "xiaohongshu_product_posts"
+  ],
+  "proposed_excluded_sources": [
+    {
+      "source_id": "xianyu_resale_listing",
+      "source_family": "secondhand_marketplace",
+      "role": "market_signal_source",
+      "reason_draft": "secondhand_marketplace 更适合观察行情、残值或挂牌信号，不代表 price, sku, promotion, review_count 的第一性事实来源。",
+      "can_be_reintroduced_as": "market_signal_source",
+      "evidence": [
+        "search:AirPods Pro 3 SKU 闲鱼 二手 残值 -> 闲鱼 / Goofish AirPods Pro 3 二手搜索 (https://www.goofish.com/search?q=AirPods%20Pro%203) :: Goofish/Xianyu search can show used asking prices, item condition and seller notes."
+      ]
+    }
+  ],
+  "decision_trace_draft": [
+    "需求先被归入 product_sales，本轮草案只围绕 price, sku, promotion, review_count, sales_signal 做主源裁决审阅。",
+    "评分审阅顺序固定为 business_fact_authority > field_coverage > freshness > repeatability > crawl_friction；抓取摩擦只能影响执行路线，不能把低权威源抬成主事实源。",
+    "候选主事实源草案为 brand_official_store_cn, jd_tmall_official_store，需要 Agent 逐条打开 evidence 核对权威性和字段覆盖。",
+    "候选交叉验证源草案为 xiaohongshu_product_posts，只用于验证主源口径、异常和趋势信号。",
+    "候选排除源族谱为 secondhand_marketplace，必须保留反证理由，不能只写“不适合”。"
+  ],
+  "review_checklist": [
+    "先确认业务目标、实体、地域、时间窗和 fact_dimensions 是否与用户需求一致。",
+    "按业务事实权威性、字段覆盖度、时效性、可复现性、抓取摩擦的固定顺序复核每个候选源。",
+    "查看 OpenCLI/platform adapter 状态；它只能帮助判断时效性、可复现性和抓取摩擦，不能替代业务事实权威性。",
+    "逐条打开主源 evidence，确认它确实承载目标字段，而不是只因为好抓或热门。",
+    "确认交叉验证源不会被误升为主事实源，排除源必须有反证或边界理由。",
+    "审阅完成后只填写 final_synthesis_template；draft 本身不得传给 --synthesis-json 编译正式 receipt。"
+  ],
+  "final_synthesis_template": {
+    "schema_version": "w31_agent_synthesis.v1",
+    "review_status": "final",
+    "source_selection_owner": "agent_synthesis",
+    "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+    "entity_type": "product",
+    "region_scope": "cn",
+    "fact_dimensions": [
+      "price",
+      "sku",
+      "promotion",
+      "review_count",
+      "sales_signal"
+    ],
+    "selected_primary_source_ids": [],
+    "cross_check_source_ids": [],
+    "excluded_sources": [],
+    "decision_trace": [],
+    "confidence": "low",
+    "basis": "Agent reviewed the W31 research packet evidence and finalized primary, cross-check and excluded sources."
+  },
+  "blocking_note": "This artifact is a reviewable draft only. Convert the nested final_synthesis_template into a completed final synthesis before compiling data_source_decision_receipt.v1."
+}

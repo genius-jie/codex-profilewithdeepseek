@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "M2_技能生产与归档",
+  "version": "1.0.0",
+  "description": "Custom skill: M2_技能生产与归档",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

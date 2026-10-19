@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 30,
+            "command": "\"@@PYTHON_EXE:forward@@\" \"@@CLAUDE_HOME:forward@@/hooks/hook_runner.py\" --event SessionStart --script \"@@CLAUDE_HOME:forward@@/hooks/session_start_capability_projection.py\"",
+            "statusMessage": "Publishing host capability projection"
+          },
+          {
+            "type": "command",
+            "timeout": 30,
+            "command": "\"@@PYTHON_EXE:forward@@\" \"@@CLAUDE_HOME:forward@@/hooks/hook_runner.py\" --event SessionStart --script \"@@CLAUDE_HOME:forward@@/hooks/session_start_context.py\"",
+            "statusMessage": "Loading host scope facts"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:forward@@\" \"@@CLAUDE_HOME:forward@@/hooks/hook_runner.py\" --event PreToolUse --script \"@@CLAUDE_HOME:forward@@/hooks/pre_tool_use_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "PreToolUse governance guard"
+          }
+        ]
+      }
+    ]
+  }
+}

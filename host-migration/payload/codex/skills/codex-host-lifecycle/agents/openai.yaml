@@ -1,0 +1,3 @@
+interface:
+  display_name: "Codex Host Lifecycle"
+  short_description: "Execute the Codex Host Lifecycle Contract"

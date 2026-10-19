@@ -1,0 +1,7 @@
+<knowledge>
+Automation Core keeps business state in request, results, and feedback. Native
+LangGraph checkpoints preserve each pending packet. The current Codex++ task
+supplies semantic work; Core validates each submitted response and alone decides
+progression and completion. A completed delivery includes a physical p6_final.
+</knowledge>
+

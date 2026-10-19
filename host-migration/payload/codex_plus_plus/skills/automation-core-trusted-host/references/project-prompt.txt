@@ -1,0 +1,9 @@
+<context>
+The user request and files under the selected project root are the project fact
+base. External projects remain outside the Automation Core source tree.
+</context>
+<rules>
+Resolve uncertainty from project evidence. Keep implementation, tests, and
+delivery artifacts inside the selected project unless the request says otherwise.
+</rules>
+

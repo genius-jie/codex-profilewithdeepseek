@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex++ Reasoning Fixes — What, How, and What Changed</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;  --paper:   #FFFFFF;
+    --slate:   #141413;  --clay:    #D97757;  --clay-d:  #B85C3E;
+    --oat:     #E3DACC;  --olive:   #788C5D;  --sky:     #6A8CAF;
+    --g100:    #F0EEE6;  --g200:    #E6E3DA;  --g300:    #D1CFC5;
+    --g500:    #87867F;  --g700:    #3D3D3A;
+    --rust:    #B04A3F;  --green:   #5B8C5A;  --amber:   #C9953C;
+    --serif:   Georgia, "Times New Roman", serif;
+    --sans:    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:    ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-dm]) { --ivory:#1A1A1A; --paper:#242424; --slate:#E8E6DC; --clay:#E8927A; --clay-d:#F0A088; --oat:#3D3D3A; --olive:#8CA87A; --sky:#8AAED0; --g100:#2E2E2E; --g200:#353535; --g300:#454545; --g500:#999; --g700:#D4D4D4; --rust:#D97A6A; --green:#7AB87A; --amber:#D4A84E; }
+    :root:not([data-dm]) .commit-dot { border-color: #1A1A1A; }
+    :root:not([data-dm]) .patch-icon { background: #2A2A2A; }
+  }
+  html[data-dm="dark"] { --ivory:#1A1A1A; --paper:#242424; --slate:#E8E6DC; --clay:#E8927A; --clay-d:#F0A088; --oat:#3D3D3A; --olive:#8CA87A; --sky:#8AAED0; --g100:#2E2E2E; --g200:#353535; --g300:#454545; --g500:#999; --g700:#D4D4D4; --rust:#D97A6A; --green:#7AB87A; --amber:#D4A84E; }
+  html[data-dm="dark"] .commit-dot { border-color: #1A1A1A; }
+  html[data-dm="dark"] .patch-icon { background: #2A2A2A; }
+  html[data-dm="light"] { --ivory:#FAF9F5; --paper:#FFF; --slate:#141413; --clay:#D97757; --clay-d:#B85C3E; --oat:#E3DACC; --olive:#788C5D; --sky:#6A8CAF; --g100:#F0EEE6; --g200:#E6E3DA; --g300:#D1CFC5; --g500:#87867F; --g700:#3D3D3A; --rust:#B04A3F; --green:#5B8C5A; --amber:#C9953C; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--ivory); color: var(--g700); font-family: var(--sans); font-size: 15px; line-height: 1.65; -webkit-font-smoothing: antialiased; padding: 56px 24px 120px; transition: background 0.2s, color 0.2s; }
+  .page { max-width: 1000px; margin: 0 auto; }
+  ul { padding-left: 20px; } li { margin-bottom: 4px; }
+
+  .dm-toggle { position: fixed; bottom: 24px; right: 24px; width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--g300); background: var(--paper); color: var(--slate); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 999; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .dm-toggle:hover { transform: scale(1.08); }
+
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--g500); margin-bottom: 10px; }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: 36px; color: var(--slate); letter-spacing: -0.01em; margin-bottom: 8px; line-height: 1.2; }
+  .subtitle { font-size: 16px; color: var(--g500); margin-bottom: 32px; max-width: 680px; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 26px; color: var(--slate); margin: 48px 0 16px; border-bottom: 1.5px solid var(--g200); padding-bottom: 8px; scroll-margin-top: 24px; }
+  h3 { font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--slate); margin: 24px 0 10px; }
+  p { margin-bottom: 12px; max-width: 700px; }
+  code { font-family: var(--mono); font-size: 12.5px; }
+  strong { color: var(--slate); }
+
+  .tldr { border: 1.5px solid var(--g300); border-left: 3px solid var(--clay); border-radius: 10px; background: var(--paper); padding: 16px 18px; margin-bottom: 24px; font-size: 14px; }
+  .tldr b { color: var(--slate); }
+
+  /* ── hero banner ── */
+  .hero-banner { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; background: var(--paper); border: 1.5px solid var(--g300); border-radius: 14px; padding: 28px; margin: 24px 0; }
+  @media (max-width: 700px) { .hero-banner { grid-template-columns: 1fr; } }
+  .hero-stat { text-align: center; padding: 12px; }
+  .hero-stat .num { font-family: var(--serif); font-size: 40px; font-weight: 500; color: var(--clay); }
+  .hero-stat .lbl { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--g500); margin-top: 2px; }
+
+  /* ── diagram ── */
+  .diagram-panel { border: 1.5px solid var(--g300); border-radius: 12px; background: var(--paper); padding: 20px; overflow-x: auto; margin: 16px 0; }
+  svg.dia { display: block; max-width: 100%; margin: 0 auto; }
+  .dia text { font-family: var(--mono); font-size: 11px; fill: var(--slate); }
+  .dia .sub { font-size: 9.5px; fill: var(--g500); }
+  .dia .box { fill: var(--paper); stroke: var(--g300); stroke-width: 1.5; rx: 8; }
+  .dia .box.main { fill: rgba(217,119,87,0.07); stroke: var(--clay); }
+  .dia .box.ok { fill: rgba(91,140,90,0.07); stroke: var(--green); }
+  .dia .arrow { stroke: var(--g500); stroke-width: 1.5; fill: none; }
+  .dia .hl { fill: rgba(201,149,60,0.12); stroke: var(--amber); stroke-width: 1.5; rx: 8; }
+  .dia .dash { stroke-dasharray: 4,3; }
+
+  /* ── patch cards grid ── */
+  .patch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 16px 0; }
+  .patch-card { border: 1.5px solid var(--g300); border-radius: 10px; background: var(--paper); padding: 16px; transition: border-color 0.15s; }
+  .patch-card:hover { border-color: var(--g500); }
+  .patch-card .icon { font-size: 22px; margin-bottom: 6px; }
+  .patch-card h4 { font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--slate); margin-bottom: 4px; }
+  .patch-card p { font-size: 12.5px; color: var(--g500); margin: 0; }
+  .patch-card .bundle-tag { display: inline-block; font-family: var(--mono); font-size: 9.5px; padding: 2px 7px; border-radius: 4px; background: var(--g100); color: var(--g500); margin-top: 8px; border: 1px solid var(--g200); }
+
+  /* ── version comparison ── */
+  .version-row { display: grid; grid-template-columns: 100px 1fr 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--g200); font-size: 14px; align-items: start; }
+  .version-row:first-of-type { border-top: 1px solid var(--g200); }
+  .version-cat { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--g500); padding-top: 2px; }
+  .version-cell { }
+  .version-cell .tag { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 1px 7px; border-radius: 4px; margin-bottom: 4px; }
+  .tag-new { background: rgba(91,140,90,0.12); color: var(--green); }
+  .tag-fixed { background: rgba(201,149,60,0.12); color: var(--amber); }
+  .tag-gone { background: rgba(185,75,55,0.08); color: var(--rust); }
+  .version-cell ul { font-size: 12.5px; margin: 0; }
+  .version-cell li { margin-bottom: 3px; }
+  .version-cell .dim { color: var(--g500); font-size: 12px; }
+
+  /* ── timeline ── */
+  .timeline { position: relative; padding-left: 28px; margin: 20px 0; }
+  .timeline::before { content: ""; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: var(--g300); }
+  .tl-item { position: relative; padding: 0 0 20px 20px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot { position: absolute; left: -23px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--paper); border: 2.5px solid var(--clay); }
+  .tl-dot.crit { border-color: var(--rust); }
+  .tl-dot.ok { border-color: var(--green); }
+  .tl-dot.warn { border-color: var(--amber); }
+  .tl-date { font-family: var(--mono); font-size: 11px; color: var(--g500); margin-bottom: 2px; }
+  .tl-title { font-family: var(--serif); font-size: 16px; color: var(--slate); font-weight: 500; }
+  .tl-body { font-size: 13px; color: var(--g500); margin-top: 4px; }
+
+  /* ── step cards (interactive) ── */
+  .step-card { border: 1.5px solid var(--g300); border-radius: 10px; background: var(--paper); margin: 14px 0; overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+  .step-card:hover { border-color: var(--g500); }
+  .step-card.open { border-color: var(--clay); }
+  .step-hdr { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: center; padding: 12px 14px; user-select: none; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 600; font-size: 12px; border: 1.5px solid var(--g300); background: var(--g100); }
+  .step-card.step-crit .step-num { border-color: var(--rust); color: var(--rust); background: rgba(185,75,55,0.08); }
+  .step-title { font-family: var(--serif); font-size: 15px; color: var(--slate); font-weight: 500; }
+  .step-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .step-card.open .step-body { max-height: 800px; }
+  .step-inner { padding: 0 14px 14px; border-top: 1px solid var(--g200); padding-top: 10px; font-size: 13px; }
+  .step-inner p { font-size: 13px; }
+
+  .code-block { background: #1A1A1A; color: #E8E6DC; font-family: var(--mono); font-size: 11.5px; line-height: 1.6; border-radius: 8px; padding: 10px 12px; overflow-x: auto; margin: 8px 0; }
+  .code-block .dim { color: #8A8A8A; }
+  .code-block .fix { color: #7EC87E; }
+  .code-block .del { color: #E8837C; }
+
+  table { border-collapse: collapse; width: 100%; max-width: 700px; font-size: 13px; margin: 16px 0; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--g300); }
+  th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--g500); font-weight: 600; }
+
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--g300); font-size: 12px; color: var(--g500); }
+</style>
+</head>
+<body>
+<button class="dm-toggle" id="dmToggle" onclick="toggleDarkMode()"></button>
+<div class="page">
+
+  <!-- ─── HEADER ─── -->
+  <div class="eyebrow">codex-plusplus-reasoning-fixes · deep dive</div>
+  <h1>Codex++ Reasoning Fixes</h1>
+  <p class="subtitle">What it is, how it works, and why a Codex update forced a full rewrite from v1.1 to v1.2.</p>
+
+  <div class="tldr">
+    <b>What is this?</b> A <strong>source-patching tweak</strong> for Codex Desktop that intercepts JavaScript bundles at load time and modifies how reasoning messages, tool calls, and exploration items render. It's one of several tweaks distributed through the <strong>Codex++</strong> plugin ecosystem.
+  </div>
+
+  <!-- ─── 1. WHAT IS CODEX++ ─── -->
+  <h2>1. What is Codex++?</h2>
+  <p>
+    <strong>Codex++</strong> is a community plugin/tweak framework for <strong>Codex Desktop</strong> — the native macOS app for interacting with AI models. It extends Codex through a system of <strong>tweaks</strong>: self-contained packages that hook into Codex's UI lifecycle, settings system, and Electron runtime.
+  </p>
+
+  <div class="hero-banner">
+    <div class="hero-stat">
+      <div class="num">3</div>
+      <div class="lbl">tweaks installed</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">12+</div>
+      <div class="lbl">source patches</div>
+    </div>
+  </div>
+
+  <p>
+    Each tweak lives in <code>~/Library/Application Support/codex-plusplus/tweaks/</code> and consists of two parts: a <strong>main-process source patcher</strong> that monkey-patches Electron's <code>protocol.handle</code> to rewrite JavaScript bundles on the fly, and a <strong>renderer UI</strong> that provides toggles in the settings panel.
+  </p>
+
+  <!-- ─── 2. WHAT IS THE REASONING-FIXES TWEAK ─── -->
+  <h2>2. What is the Reasoning Fixes Tweak?</h2>
+  <p>
+    The <strong>reasoning-fixes</strong> tweak (package ID <code>co.shivam94.reasoning-fixes</code>) addresses a set of long-standing UI annoyances in Codex's conversation view:
+  </p>
+
+  <div class="patch-grid">
+    <div class="patch-card">
+      <div class="icon">🧠</div>
+      <h4>Standalone reasoning</h4>
+      <p>Reasoning messages appear as standalone chat items instead of being nested inside exploration accordions.</p>
+      <span class="bundle-tag">split-items</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">⚡</div>
+      <h4>No thinking shimmer</h4>
+      <p>Removes the pulsing color animation on reasoning text while it's streaming — reduces visual noise.</p>
+      <span class="bundle-tag">shimmer</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">🚀</div>
+      <h4>Auto-expand exec shells</h4>
+      <p>Command outputs start expanded instead of collapsed, so you see results immediately.</p>
+      <span class="bundle-tag">thread</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">📋</div>
+      <h4>Expand tool activity</h4>
+      <p>Tool call sections (like file edits, web searches) start expanded by default.</p>
+      <span class="bundle-tag">thread</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">🔢</div>
+      <h4>Fix assistant order</h4>
+      <p>Searches the entire agent items array for an assistant message instead of assuming it's the last element.</p>
+      <span class="bundle-tag">split-items</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">🔍</div>
+      <h4>Show exploration items</h4>
+      <p>Exploration items (tool calls, file reads) appear as standalone entries in the conversation.</p>
+      <span class="bundle-tag">split-items</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">🔄</div>
+      <h4>Collapse-all button</h4>
+      <p>A floating button that toggles all reasoning sections collapsed/expanded at once.</p>
+      <span class="bundle-tag">DOM effect</span>
+    </div>
+    <div class="patch-card">
+      <div class="icon">📄</div>
+      <h4>File edits no tool group</h4>
+      <p>Prevents file-edit patches from being grouped inside tool-activity accordions.</p>
+      <span class="bundle-tag">split-items</span>
+    </div>
+  </div>
+
+  <!-- ─── 3. HOW IT WORKS ─── -->
+  <h2>3. How It Works</h2>
+  <p>
+    The tweak operates in two layers: a <strong>main-process source patcher</strong> that rewrites JavaScript before it reaches the renderer, and a <strong>renderer settings UI</strong> that controls which patches are active.
+  </p>
+
+  <div class="diagram-panel">
+    <svg class="dia" viewBox="0 0 760 280" width="760" height="280" role="img">
+      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#87867F"/></marker></defs>
+      <!-- Layer labels -->
+      <text class="sub" x="20" y="20" text-anchor="start" font-weight="600">MAIN PROCESS (Node + Electron)</text>
+      <text class="sub" x="20" y="160" text-anchor="start" font-weight="600">RENDERER (Chromium)</text>
+
+      <!-- Row 1 boxes -->
+      <rect class="box hl" x="30" y="32" width="180" height="56" rx="8"/>
+      <text x="120" y="55" text-anchor="middle">Source Patcher</text>
+      <text class="sub" x="120" y="72" text-anchor="middle">monkey-patches protocol.handle</text>
+
+      <rect class="box" x="290" y="32" width="180" height="56" rx="8"/>
+      <text x="380" y="55" text-anchor="middle">PATCHES registry</text>
+      <text class="sub" x="380" y="72" text-anchor="middle">12 regex find-replace rules</text>
+
+      <rect class="box ok" x="550" y="32" width="180" height="56" rx="8"/>
+      <text x="640" y="55" text-anchor="middle">Codex Bundles</text>
+      <text class="sub" x="640" y="72" text-anchor="middle">app:// assets intercepted</text>
+
+      <!-- Arrows row 1 -->
+      <line class="arrow" x1="210" y1="60" x2="288" y2="60" marker-end="url(#a)"/>
+      <line class="arrow" x1="470" y1="60" x2="548" y2="60" marker-end="url(#a)"/>
+      <text class="sub" x="250" y="44" text-anchor="middle">reads</text>
+      <text class="sub" x="510" y="44" text-anchor="middle">patches</text>
+
+      <!-- Down arrows -->
+      <line class="arrow" x1="120" y1="88" x2="120" y2="172" marker-end="url(#a)"/>
+      <text class="sub" x="130" y="134" text-anchor="start">IPC</text>
+
+      <!-- Row 2 boxes -->
+      <rect class="box hl" x="30" y="180" width="180" height="56" rx="8"/>
+      <text x="120" y="203" text-anchor="middle">Settings UI</text>
+      <text class="sub" x="120" y="220" text-anchor="middle">index.js renderer</text>
+
+      <rect class="box" x="290" y="180" width="180" height="56" rx="8"/>
+      <text x="380" y="203" text-anchor="middle">FEATURES registry</text>
+      <text class="sub" x="380" y="220" text-anchor="middle">runtime DOM effects</text>
+
+      <rect class="box ok" x="550" y="180" width="180" height="56" rx="8"/>
+      <text x="640" y="203" text-anchor="middle">Patched UI</text>
+      <text class="sub" x="640" y="220" text-anchor="middle">standalone reasoning, etc.</text>
+
+      <!-- Arrow row 2 -->
+      <line class="arrow" x1="210" y1="208" x2="288" y2="208" marker-end="url(#a)"/>
+      <line class="arrow" x1="470" y1="208" x2="548" y2="208" marker-end="url(#a)"/>
+    </svg>
+  </div>
+
+  <p>
+    <strong>At app startup:</strong> <code>source-patcher.js</code> replaces Electron's <code>protocol.handle</code> with a wrapper. Every time Codex loads a renderer bundle (like <code>local-conversation-thread-xxxxx.js</code>), the wrapper intercepts the response, runs it through <code>patchSource()</code>, and serves the patched version.
+  </p>
+
+  <h3>The patch pipeline</h3>
+  <div class="diagram-panel">
+    <svg class="dia" viewBox="0 0 760 120" width="760" height="120" role="img">
+      <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#87867F"/></marker></defs>
+      <rect class="box" x="10" y="30" width="140" height="50" rx="8"/>
+      <text x="80" y="58" text-anchor="middle" font-size="10px">Bundle loads</text>
+
+      <rect class="box main" x="180" y="30" width="140" height="50" rx="8"/>
+      <text x="250" y="55" text-anchor="middle" font-size="10px">inspectRule()</text>
+      <text class="sub" x="250" y="68" text-anchor="middle" font-size="8px">unpatched vs patched</text>
+
+      <rect class="box ok" x="350" y="30" width="140" height="50" rx="8"/>
+      <text x="420" y="55" text-anchor="middle" font-size="10px">replace()</text>
+      <text class="sub" x="420" y="68" text-anchor="middle" font-size="8px">regex replacement</text>
+
+      <rect class="box" x="520" y="30" width="140" height="50" rx="8"/>
+      <text x="590" y="55" text-anchor="middle" font-size="10px">inspectRule()</text>
+      <text class="sub" x="590" y="68" text-anchor="middle" font-size="8px">verify applied</text>
+
+      <rect class="box" x="690" y="30" width="60" height="50" rx="8"/>
+      <text x="720" y="58" text-anchor="middle" font-size="10px">Serve</text>
+
+      <line class="arrow" x1="150" y1="55" x2="178" y2="55" marker-end="url(#b)"/>
+      <line class="arrow" x1="320" y1="55" x2="348" y2="55" marker-end="url(#b)"/>
+      <line class="arrow" x1="490" y1="55" x2="518" y2="55" marker-end="url(#b)"/>
+      <line class="arrow" x1="660" y1="55" x2="688" y2="55" marker-end="url(#b)"/>
+    </svg>
+  </div>
+
+  <p>
+    Each patch is a <code>{ bundle, unpatched, patched, replacement }</code> rule. <code>inspectRule()</code> runs both regexes against the source — if only <code>unpatched</code> matches, the patch is applied. If only <code>patched</code> matches, it's already done. If neither matches, Codex has changed shape and the patch is "unsupported."
+  </p>
+
+  <!-- ─── 4. V1.1 VS V1.2 ─── -->
+  <h2>4. v1.1 vs v1.2: What Changed</h2>
+  <p>
+    v1.1 was built for Codex <strong>26.506.11943</strong>. When Codex updated, the renderer bundle shapes changed — the regex patterns in v1.1 no longer matched the new JavaScript, so all patches silently stopped applying.
+    <strong>v1.2.0-alpha</strong> was a full re-write targeting Codex <strong>26.506.20924</strong>, with a new patch-wiring architecture and additional patches. The <code>fix&gt;codex_update_26.506.20924</code> branch then fixed 5 bugs in that adaptation.
+  </p>
+
+  <div class="version-row">
+    <div class="version-cat">Version</div>
+    <div><strong>v1.1</strong></div>
+    <div><strong>v1.2</strong> (fix branch)</div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Codex target</div>
+    <div>26.506.11943 (older bundle shapes)</div>
+    <div>26.506.20924 &rarr; 26.506.31004</div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Catalyst</div>
+    <div>—</div>
+    <div>Codex update broke all v1.1 patches</div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Patches</div>
+    <div>
+      <span class="tag tag-gone">show-reasoning</span>
+      <span class="tag tag-gone">disable-shimmer</span>
+      <span class="tag tag-gone">reasoning-no-blink</span>
+      <span class="tag tag-gone">collapse-all-toggle</span>
+      <div class="dim">~6 patches, names uncertain (old version not available)</div>
+    </div>
+    <div>
+      <span class="tag tag-new">auto-expand-exec</span>
+      <span class="tag tag-new">expand-tool-activity</span>
+      <span class="tag tag-new">fix-assistant-order</span>
+      <span class="tag tag-new">show-exploration-items</span>
+      <span class="tag tag-new">file-edits-no-tool-group</span>
+      <div class="dim">12 patches across 3 bundles</div>
+    </div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Bundles</div>
+    <div>Unknown &mdash; v1.1 can't be recovered</div>
+    <div><code>split-items</code>, <code>shimmer</code>, <code>thread</code></div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Architecture</div>
+    <div>Flat <code>PATCHES</code> list, manual enable/disable</div>
+    <div><code>SETTING_FEATURES</code> groups, <code>inspectRule()</code> diagnostics, IPC sync, aggregated status API</div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Collapse button</div>
+    <div>Created once at startup; no runtime toggle</div>
+    <div>FEATURES entry for show/hide; idempotent creation; dynamic DOM cleanup</div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Diagnostics</div>
+    <div>None (patches either worked or didn't)</div>
+    <div><code>buildStatus()</code> API, per-feature observations, patched-assets tracking</div>
+  </div>
+  <div class="version-row">
+    <div class="version-cat">Bugs on landing</div>
+    <div>—</div>
+    <div>
+      <span class="tag tag-fixed">5 bugs</span>
+      <span class="tag tag-fixed">wiring gaps</span>
+      <span class="tag tag-fixed">syntax error</span>
+      <span class="tag tag-fixed">bundle drift</span>
+    </div>
+  </div>
+
+  <h3>Bug-fix timeline (v1.2 fix branch)</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">da0e3e9</div>
+      <div class="tl-title">Repair 3 wiring bugs</div>
+      <div class="tl-body">Missing SETTING_FEATURES entry, dead UI toggles from refactor, patched/replacement regex mismatch.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">29810e3</div>
+      <div class="tl-title">Toggle now actually works</div>
+      <div class="tl-body">collapse-all-toggle had no FEATURES entry — button created once at startup, never toggled dynamically.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">afde18c</div>
+      <div class="tl-title">Stale closure cleanup</div>
+      <div class="tl-body">Idempotency guard left cleanup variable null — switch to dynamic DOM lookup.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot warn"></div>
+      <div class="tl-date">04f78a0</div>
+      <div class="tl-title">Bundle target drift</div>
+      <div class="tl-body">3 patches targeting wrong bundles + inspectRule used === 1 instead of >= 1.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot crit"></div>
+      <div class="tl-date">99f25ce</div>
+      <div class="tl-title">Blank-screen syntax error</div>
+      <div class="tl-body">Replacement started with 'let' inside existing 'let' declaration — SyntaxError, blank conversation view.</div>
+    </div>
+  </div>
+
+  <p style="margin-top:20px;">
+    <strong>Net diff:</strong> 5 commits, 2 files changed (<code>index.js</code>, <code>source-patcher.js</code>), −40/+31 net lines. The branch restored all 12 patches to working order against Codex 26.506.31004.
+  </p>
+
+  <!-- ─── 5. DEEP DIVE: KEY FIXES ─── -->
+  <h2>5. Key Fixes — Deep Dive</h2>
+  <p>Click each card to expand.</p>
+
+  <div class="step-card step-crit" onclick="toggleCard(this)">
+    <div class="step-hdr">
+      <div class="step-num">!</div>
+      <div class="step-title">Blank screen: let inside let</div>
+    </div>
+    <div class="step-body"><div class="step-inner">
+      <p><strong>Most impactful bug.</strong> The <code>fix-assistant-order</code> patch injected <code>let O=null;</code> into existing code that already had <code>let T=...,E=...,</code>. Result: <code>let X,let Y</code> in a single comma-separated declaration = SyntaxError in strict mode. The bundle failed to parse entirely → React never mounted → white screen.</p>
+      <div class="code-block">
+        <span class="dim">// Before (broken):</span>
+        let T=...,E=...,<span class="del">let O=null;for(...){...}</span>let k=...
+        <span class="dim">// After (fixed):</span>
+        let T=...,E=...,<span class="fix">O=null;for(...){...}</span>let k=...
+      </div>
+      <p><strong>Lesson:</strong> A replacement correct in isolation can break the surrounding declaration. Always read 20 characters before and after the injection point.</p>
+    </div></div>
+  </div>
+
+  <div class="step-card" onclick="toggleCard(this)">
+    <div class="step-hdr">
+      <div class="step-num">2</div>
+      <div class="step-title">Bundle drift: patches targeting wrong files</div>
+    </div>
+    <div class="step-body"><div class="step-inner">
+      <p>Codex updates shuffle JavaScript between bundle files. Three patches were targeting bundles where the patterns no longer existed:</p>
+      <table>
+        <tr><th>Patch</th><th>Old bundle</th><th>Actual bundle</th></tr>
+        <tr><td><code>auto-expand-exec</code></td><td><code>lt</code></td><td><code>thread</code></td></tr>
+        <tr><td><code>expand-tool-activity</code></td><td><code>settings-page</code></td><td><code>thread</code></td></tr>
+        <tr><td><code>no-layout-position-composer</code></td><td><code>composer</code></td><td>removed</td></tr>
+      </table>
+      <p>Also fixed: <code>inspectRule</code> used <code>=== 1</code> instead of <code>&gt;= 1</code>, so <code>expand-tool-activity</code> (matches 3×) was misclassified as "mixed" and skipped.</p>
+    </div></div>
+  </div>
+
+  <div class="step-card" onclick="toggleCard(this)">
+    <div class="step-hdr">
+      <div class="step-num">3</div>
+      <div class="step-title">Toggle that did nothing</div>
+    </div>
+    <div class="step-body"><div class="step-inner">
+      <p><strong>collapse-all-toggle</strong> appeared in the settings UI but had no <code>FEATURES</code> entry. When toggled, <code>activateFeature()</code> logged "unknown feature" and returned. The button was created once at startup — toggling had no runtime effect.</p>
+      <p><strong>Fix:</strong> Always create the button (hidden if disabled), add a FEATURES entry to show/hide it, make creation idempotent for hot-reload safety.</p>
+    </div></div>
+  </div>
+
+  <div class="step-card" onclick="toggleCard(this)">
+    <div class="step-hdr">
+      <div class="step-num">4</div>
+      <div class="step-title">Stale closure after idempotency guard</div>
+    </div>
+    <div class="step-body"><div class="step-inner">
+      <p>The idempotency guard (<code>if (btn exists) return</code>) was added to prevent duplicate buttons on hot-reload. But the cleanup closure captured <code>btn</code> — which is <code>null</code> when the guard fires. Cleanup silently did nothing, leaving orphan DOM elements.</p>
+      <p><strong>Fix:</strong> Query the DOM at cleanup time (<code>document.getElementById</code>) instead of capturing in a closure.</p>
+    </div></div>
+  </div>
+
+  <div class="step-card" onclick="toggleCard(this)">
+    <div class="step-hdr">
+      <div class="step-num">5</div>
+      <div class="step-title">Three wiring gaps</div>
+    </div>
+    <div class="step-body"><div class="step-inner">
+      <p>Three patches silently never activated because the <code>PATCHES</code> / <code>SETTING_FEATURES</code> / <code>FEATURES</code> registries drifted apart:</p>
+      <ul>
+        <li><strong>1a:</strong> <code>no-layout-position-composer</code> defined in PATCHES but missing from every SETTING_FEATURES group</li>
+        <li><strong>1b:</strong> Two settings toggles (<em>show-tool-outputs</em>, <em>disable-streaming-pulse</em>) still advertised in the UI but their backing patches were removed in the v1.2 refactor</li>
+        <li><strong>1c:</strong> <code>fix-assistant-order</code> replacement and patched regex out of sync — the patched checker always returned "unsupported" even when the replacement was applied</li>
+      </ul>
+    </div></div>
+  </div>
+
+  <footer>
+    <p>Generated from commit <code>99f25ce</code> on branch <code>fix&gt;codex_update_26.506.20924</code>. 5 commits, 2 files changed, −40/+31 lines.</p>
+    <p style="margin-top:4px;">Tweak location: <code>~/Library/Application Support/codex-plusplus/tweaks/co.shivam94.reasoning-fixes</code></p>
+  </footer>
+
+</div>
+
+<script>
+  function toggleCard(el) { el.classList.toggle('open'); }
+  document.querySelectorAll('.step-card').forEach(function(c) {
+    c.addEventListener('keydown', function(e) { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); toggleCard(this); } });
+    c.setAttribute('tabindex', '0'); c.setAttribute('role', 'button');
+    c.addEventListener('click', function() { this.setAttribute('aria-expanded', this.classList.contains('open')); });
+  });
+
+  function toggleDarkMode() {
+    var html = document.documentElement;
+    var cur = html.getAttribute('data-dm');
+    if (cur === 'dark') html.setAttribute('data-dm', 'light');
+    else if (cur === 'light') html.removeAttribute('data-dm');
+    else html.setAttribute('data-dm', 'dark');
+    updateIcon();
+    try { localStorage.setItem('dm-pref', html.getAttribute('data-dm')||''); } catch(e) {}
+  }
+  function updateIcon() {
+    var dm = document.documentElement.getAttribute('data-dm');
+    var btn = document.getElementById('dmToggle');
+    if (dm === 'dark') btn.textContent = '\u2600\uFE0F';
+    else if (dm === 'light') btn.textContent = '\uD83C\uDF19';
+    else btn.textContent = window.matchMedia('(prefers-color-scheme:dark)').matches ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  }
+  (function() {
+    try {
+      var p = localStorage.getItem('dm-pref');
+      if (p === 'dark') document.documentElement.setAttribute('data-dm', 'dark');
+      else if (p === 'light') document.documentElement.setAttribute('data-dm', 'light');
+      updateIcon();
+    } catch(e) {}
+  })();
+</script>
+
+</body>
+</html>

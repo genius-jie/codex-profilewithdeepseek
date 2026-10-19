@@ -1,0 +1,109 @@
+schema_version: crawler_capability_registry.v1
+registry_id: s31_w31_shared_crawler_capabilities
+owner_skill: '@@GENERAL_ROOT:win@@\skills\S31_爬虫策略探勘与选型\SKILL.md'
+owner_workflow: '@@GENERAL_ROOT:win@@\workflows\W31_爬虫探勘与事实采集工作流.md'
+fact_pack_schema: crawler_fact_pack.v1
+resolution_schema: w31_crawler_capability_resolution.v1
+dispatch_schema: w31_crawler_capability_dispatch.v1
+onboarding_schema: crawler_capability_onboarding.v1
+onboarding_receipt_schema: crawler_capability_onboarding_receipt.v1
+onboarding_tool: '@@GENERAL_ROOT:win@@\scripts\w31_crawler_capability_onboard.py'
+shared_tools:
+  s31d_validator: '@@GENERAL_ROOT:win@@\skills\S31_爬虫策略探勘与选型\subskills\S31D_爬虫事实包契约\scripts\crawler_fact_pack.py'
+capabilities:
+  - capability_id: ebook.epub_pub.single_book_fulltext.v1
+    status: active
+    maturity_status: verified_live
+    selection_priority: 100
+    business_profiles:
+      - ebook_single_book_fulltext
+    collection_modes:
+      - query_search_data_collection
+    source_match:
+      default_platform: epub_pub
+      platforms:
+        - epub_pub
+      host_patterns:
+        - '(^|\.)epub\.pub$'
+      url_patterns:
+        - '^https?://(?:www\.)?epub\.pub/book/'
+    supported_operations:
+      - detail
+      - body
+      - table_of_contents
+      - media_assets
+      - comments_optional
+    required_nodes:
+      - S31A
+      - S31C
+      - S31D
+    fact_pack_profile: ebook_single_book_fulltext.v1
+    failure_states:
+      - route_not_resolved
+      - book_page_fetch_failed
+      - reader_fetch_failed
+      - opf_fetch_failed
+      - manifest_item_missing
+      - empty_linear_xhtml
+      - comments_not_collected
+      - fact_pack_validation_failed
+      - verification_failed
+    adapter:
+      execution_kind: governed_pipeline
+      runtime: python
+      entrypoint: '@@GENERAL_ROOT:win@@\skills\S31_爬虫策略探勘与选型\subskills\S31C_内容平台事实采集\scripts\epub_pub_pipeline.py'
+      required_inputs:
+        url: --url
+        output_dir: --output-dir
+      optional_inputs:
+        route_receipt: --route-receipt
+        interaction_observation: --interaction-observation
+        concurrency: --concurrency
+        timeout: --timeout
+        retries: --retries
+        min_interval: --min-interval
+      boolean_flags:
+        require_interactions: --require-interactions
+      context_inputs:
+        capability_id: --capability-id
+        capability_resolution_ref: --capability-resolution-ref
+        crawler_capability_registry_ref: --capability-registry-ref
+      output_contract:
+        adapter_receipt: epub_pub_pipeline_receipt.v1.json
+        route_receipt: s31a_route_receipt.v1.json
+        checked_fact_pack: crawler_fact_pack.v1.checked.json
+        w31_handoff: w31_handoff.v1.json
+      artifact_assertions:
+        adapter_receipt:
+          schema_version: s31c_epub_pub_pipeline_receipt.v1
+          status_path: status
+          success_values:
+            - passed
+        route_receipt:
+          schema_version: s31a_route_receipt.v1
+        checked_fact_pack:
+          schema_version: crawler_fact_pack.v1
+          status_path: validation.ok
+          success_values:
+            - true
+        w31_handoff:
+          schema_version: w31_handoff.v1
+          status_path: collection_status
+          success_values:
+            - ok
+      success_status_path: status
+      success_values:
+        - passed
+    verification:
+      unit_test: '@@GENERAL_ROOT:win@@\skills\S31_爬虫策略探勘与选型\subskills\S31C_内容平台事实采集\tests\test_epub_pub_book_collector.py'
+      live_fixture_required: true
+      acceptance_fields:
+        - status
+        - verification_status
+        - manifest_items
+        - chapters
+        - paragraphs
+    ownership:
+      skill: '@@GENERAL_ROOT:win@@\skills\S31_爬虫策略探勘与选型\subskills\S31C_内容平台事实采集\SKILL.md'
+      workflow: '@@GENERAL_ROOT:win@@\workflows\W31_爬虫探勘与事实采集工作流.md'
+      project_overlay_policy: capability_id_reference_only

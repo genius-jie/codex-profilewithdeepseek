@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "M5_系统与知识资产治理",
+  "version": "1.0.0",
+  "description": "Custom skill: M5_系统与知识资产治理",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

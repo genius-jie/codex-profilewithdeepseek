@@ -1,0 +1,557 @@
+schema_version: s31_business_metric_route_registry.v1
+last_verified: '2026-06-12'
+owner_skill: @@GENERAL_ROOT:win@@\skills\S31_爬虫策略探勘与选型\SKILL.md
+baseline_ref: subskills/S31A_数据源探针与路线选型/references/platform_crawl_maturity_baseline.yaml
+fact_pack_contract_ref: subskills/S31D_爬虫事实包契约/scripts/crawler_fact_pack.py
+runner_ref: subskills/S31C_内容平台事实采集/scripts/platform_shard_runner.py
+policy:
+  lookup_key: platform + metric_id
+  command_builder: subskills/S31C_内容平台事实采集/scripts/business_metric_routes.py
+  opencli_command_surface: lookup.opencli_commands must expose the direct OpenCLI or Browser Bridge command surface for every non-unavailable metric route.
+  fact_boundary: Metrics must resolve to observed fact rows, command receipts, or explicit unsupported/discovery-only status.
+  unsupported_metric_status: unsupported_metric_for_platform
+  freshness_clock: fact_pack.collected_at
+route_levels:
+  L3_live_metric: Public live route with observed rows and repeatable OpenCLI/site adapter execution.
+  L2_controlled_metric: Controlled session or human-captured route; observed rows allowed only with session/preflight evidence.
+  L1_browser_metric: Browser bridge, RSS, SSR, or HTML-derived route; slower and requires page/body evidence.
+  L0_discovery: Candidate URL or source discovery only; no direct fact import.
+  L0_unavailable: Current system must not import this metric for the platform.
+freshness_slas:
+  near_live_6h:
+    max_age_minutes: 360
+    stale_action: rerun_metric_route
+  daily_24h:
+    max_age_minutes: 1440
+    stale_action: rerun_daily_or_on_demand
+  controlled_24h:
+    max_age_minutes: 1440
+    stale_action: rerun_after_session_preflight
+  weekly_reference:
+    max_age_minutes: 10080
+    stale_action: rerun_reference_route
+  discovery_only:
+    max_age_minutes: 1440
+    stale_action: handoff_candidate_urls_to_primary_platform
+metrics:
+  review_count:
+    target_fields: [review_count, comment_count, comments]
+    default_fact_pack_paths: ["items[].metrics.comments", "items[].metrics.comment_count", "fact_summary.item_count"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [source_url_required, count_or_review_rows_required]
+  rating_average:
+    target_fields: [rating, rating_average, score, star_rating]
+    default_fact_pack_paths: ["items[].metrics.rating", "items[].metrics.score"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [rating_scale_known, source_url_required]
+  review_text_sample:
+    target_fields: [review_body, comment_text, body, top_comments]
+    default_fact_pack_paths: ["items[].body", "items[].top_comments[].text"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [non_empty_body_or_comment_required, source_url_required]
+  negative_review_signal:
+    target_fields: [review_body, comment_text, rating, pain_terms]
+    default_fact_pack_paths: ["items[].body", "items[].top_comments[].text", "fact_summary.review_text_high_frequency_pain_terms"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [observed_text_required, inference_separated_from_facts]
+  price_current:
+    target_fields: [sale_price, list_price, current_price, promotion_price]
+    default_fact_pack_paths: ["items[].metrics.price", "items[].metrics.sale_price", "items[].business.price"]
+    default_freshness_sla: near_live_6h
+    acceptance_gates: [seller_or_item_identity_required, price_timestamp_required]
+  sku_variant:
+    target_fields: [sku, variant, color, model, specification]
+    default_fact_pack_paths: ["items[].metrics.sku", "items[].business.sku", "items[].tags"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [item_identity_required, variant_text_required]
+  sales_volume_signal:
+    target_fields: [sales_count, sold_count, order_count, popularity]
+    default_fact_pack_paths: ["items[].metrics.sales", "items[].metrics.sold_count", "items[].metrics.views"]
+    default_freshness_sla: near_live_6h
+    acceptance_gates: [visible_metric_required, platform_semantics_documented]
+  resale_price:
+    target_fields: [resale_price, asking_price, listing_price]
+    default_fact_pack_paths: ["items[].metrics.price", "items[].metrics.resale_price"]
+    default_freshness_sla: near_live_6h
+    acceptance_gates: [listing_url_required, condition_or_description_required]
+  listing_condition:
+    target_fields: [condition, description, resale_reason]
+    default_fact_pack_paths: ["items[].body", "items[].tags", "items[].business.condition"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [listing_url_required, observed_condition_text_required]
+  social_engagement:
+    target_fields: [likes, comments, shares, views, reposts]
+    default_fact_pack_paths: ["items[].metrics.likes", "items[].metrics.comments", "items[].metrics.shares", "items[].metrics.views"]
+    default_freshness_sla: near_live_6h
+    acceptance_gates: [post_url_required, metric_snapshot_required]
+  content_publish_time:
+    target_fields: [published_at, created_at, review_date, update_time]
+    default_fact_pack_paths: ["items[].published_at", "items[].metrics.published_at", "items[].data_quality_flags"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [source_url_required, timestamp_or_quality_flag_required]
+  local_business_rating:
+    target_fields: [shop_rating, rating, score, review_count]
+    default_fact_pack_paths: ["items[].metrics.rating", "items[].metrics.comments"]
+    default_freshness_sla: daily_24h
+    acceptance_gates: [shop_id_or_url_required, rating_or_review_rows_required]
+  discovery_candidate_url:
+    target_fields: [title, url, source_name, snippet]
+    default_fact_pack_paths: []
+    default_freshness_sla: discovery_only
+    acceptance_gates: [candidate_url_required, no_direct_fact_import]
+platform_metric_routes:
+  douyin_ecommerce:
+    metrics:
+      review_count:
+        route_level: L2_controlled_metric
+        required_seeds: [product_url, item_id]
+        source_fields: [comment_count, review_body]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [session_preflight_required, ecommerce_rows_separated_from_topic_rows]
+      rating_average:
+        route_level: L2_controlled_metric
+        required_seeds: [product_url, item_id]
+        source_fields: [rating, score]
+        fact_pack_paths: ["items[].metrics.rating"]
+        quality_gates: [session_preflight_required, rating_scale_known]
+      price_current:
+        route_level: L2_controlled_metric
+        required_seeds: [product_url, sku]
+        source_fields: [sale_price, promotion_price]
+        fact_pack_paths: ["items[].metrics.price", "items[].business.price"]
+        quality_gates: [session_preflight_required, item_identity_required]
+      sku_variant:
+        route_level: L2_controlled_metric
+        required_seeds: [product_url]
+        source_fields: [sku, variant, specification]
+        fact_pack_paths: ["items[].business.sku", "items[].tags"]
+        quality_gates: [session_preflight_required, variant_text_required]
+      sales_volume_signal:
+        route_level: L2_controlled_metric
+        required_seeds: [product_url]
+        source_fields: [sales_count, popularity]
+        fact_pack_paths: ["items[].metrics.sales", "items[].metrics.views"]
+        quality_gates: [session_preflight_required, visible_metric_required]
+  douyin:
+    metrics:
+      social_engagement:
+        route_level: L2_controlled_metric
+        required_seeds: [video_url, topic_query]
+        source_fields: [likes, comments, shares, views]
+        fact_pack_paths: ["items[].metrics.likes", "items[].metrics.comments", "items[].metrics.shares", "items[].metrics.views"]
+        quality_gates: [session_preflight_required, post_url_required]
+      review_text_sample:
+        route_level: L2_controlled_metric
+        required_seeds: [video_url, topic_query]
+        source_fields: [comment_text, body]
+        fact_pack_paths: ["items[].top_comments[].text", "items[].body"]
+        quality_gates: [session_preflight_required, observed_text_required]
+      negative_review_signal:
+        route_level: L2_controlled_metric
+        required_seeds: [video_url, topic_query]
+        source_fields: [comment_text, pain_terms]
+        fact_pack_paths: ["items[].top_comments[].text", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [session_preflight_required, inference_separated_from_facts]
+      content_publish_time:
+        route_level: L2_controlled_metric
+        required_seeds: [video_url, topic_query]
+        source_fields: [published_at, created_at]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [session_preflight_required, timestamp_or_quality_flag_required]
+  jd:
+    metrics:
+      review_count:
+        route_level: L3_live_metric
+        required_seeds: [sku, product_url]
+        source_fields: [comment_count, good_rate, review_body]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [sku_or_item_url_required, count_or_review_rows_required]
+      rating_average:
+        route_level: L3_live_metric
+        required_seeds: [sku, product_url]
+        source_fields: [good_rate, score]
+        fact_pack_paths: ["items[].metrics.rating", "items[].metrics.score"]
+        quality_gates: [sku_or_item_url_required, rating_scale_known]
+      price_current:
+        route_level: L3_live_metric
+        required_seeds: [sku, product_url]
+        source_fields: [sale_price, promotion_price]
+        fact_pack_paths: ["items[].metrics.price", "items[].business.price"]
+        quality_gates: [item_identity_required, price_timestamp_required]
+      sku_variant:
+        route_level: L3_live_metric
+        required_seeds: [sku, product_url]
+        source_fields: [sku, variant, specification]
+        fact_pack_paths: ["items[].business.sku", "items[].tags"]
+        quality_gates: [item_identity_required, variant_text_required]
+      negative_review_signal:
+        route_level: L3_live_metric
+        required_seeds: [sku, product_url]
+        source_fields: [review_body, pain_terms]
+        fact_pack_paths: ["items[].body", "items[].top_comments[].text", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [observed_text_required, inference_separated_from_facts]
+  xianyu:
+    metrics:
+      resale_price:
+        route_level: L2_controlled_metric
+        required_seeds: [query, item_url]
+        source_fields: [listing_price, asking_price]
+        fact_pack_paths: ["items[].metrics.price", "items[].metrics.resale_price"]
+        quality_gates: [session_preflight_required, listing_url_required]
+      listing_condition:
+        route_level: L2_controlled_metric
+        required_seeds: [query, item_url]
+        source_fields: [condition, description, resale_reason]
+        fact_pack_paths: ["items[].body", "items[].tags", "items[].business.condition"]
+        quality_gates: [session_preflight_required, observed_condition_text_required]
+      content_publish_time:
+        route_level: L2_controlled_metric
+        required_seeds: [query, item_url]
+        source_fields: [published_at, listing_age]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [session_preflight_required, timestamp_or_quality_flag_required]
+  xiaohongshu:
+    metrics:
+      social_engagement:
+        route_level: L2_controlled_metric
+        required_seeds: [query, note_url]
+        source_fields: [likes, collects, comments]
+        fact_pack_paths: ["items[].metrics.likes", "items[].metrics.collects", "items[].metrics.comments"]
+        quality_gates: [session_preflight_required, note_url_or_query_required]
+      review_text_sample:
+        route_level: L2_controlled_metric
+        required_seeds: [query, note_url]
+        source_fields: [note_text, comment_text]
+        fact_pack_paths: ["items[].body", "items[].top_comments[].text"]
+        quality_gates: [session_preflight_required, observed_text_required]
+      negative_review_signal:
+        route_level: L2_controlled_metric
+        required_seeds: [query, note_url]
+        source_fields: [note_text, comment_text, pain_terms]
+        fact_pack_paths: ["items[].body", "items[].top_comments[].text", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [session_preflight_required, visible_competitor_context_required]
+      content_publish_time:
+        route_level: L2_controlled_metric
+        required_seeds: [query, note_url]
+        source_fields: [published_at, created_at]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [session_preflight_required, timestamp_or_quality_flag_required]
+      price_current:
+        route_level: L2_controlled_metric
+        required_seeds: [query, note_url]
+        source_fields: [mentioned_price]
+        fact_pack_paths: ["items[].metrics.price", "items[].body"]
+        quality_gates: [session_preflight_required, mentioned_price_is_context_not_sale_fact]
+  amazon:
+    metrics:
+      review_count:
+        route_level: L3_live_metric
+        required_seeds: [asin, product_url]
+        source_fields: [review_count, review_body]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [asin_or_review_url_required, count_or_review_rows_required]
+      rating_average:
+        route_level: L3_live_metric
+        required_seeds: [asin, product_url]
+        source_fields: [rating, score]
+        fact_pack_paths: ["items[].metrics.rating"]
+        quality_gates: [asin_or_review_url_required, rating_scale_known]
+      review_text_sample:
+        route_level: L3_live_metric
+        required_seeds: [asin, product_url]
+        source_fields: [review_title, review_body]
+        fact_pack_paths: ["items[].title", "items[].body"]
+        quality_gates: [asin_or_review_url_required, observed_text_required]
+      negative_review_signal:
+        route_level: L3_live_metric
+        required_seeds: [asin, product_url]
+        source_fields: [review_body, rating, pain_terms]
+        fact_pack_paths: ["items[].body", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [observed_text_required, inference_separated_from_facts]
+  appstore:
+    metrics:
+      review_count:
+        route_level: L1_browser_metric
+        required_seeds: [app_id, country]
+        source_fields: [review_count, rss_review_rows]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [app_id_country_required, review_rows_required]
+      rating_average:
+        route_level: L1_browser_metric
+        required_seeds: [app_id, country]
+        source_fields: [rating, star_rating]
+        fact_pack_paths: ["items[].metrics.rating"]
+        quality_gates: [app_id_country_required, rating_scale_known]
+      review_text_sample:
+        route_level: L1_browser_metric
+        required_seeds: [app_id, country]
+        source_fields: [review_title, review_body]
+        fact_pack_paths: ["items[].title", "items[].body"]
+        quality_gates: [app_id_country_required, observed_text_required]
+      content_publish_time:
+        route_level: L1_browser_metric
+        required_seeds: [app_id, country]
+        source_fields: [review_date, version]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [app_id_country_required, timestamp_or_quality_flag_required]
+  dianping:
+    metrics:
+      review_count:
+        route_level: L3_live_metric
+        required_seeds: [shop_id, shop_url]
+        source_fields: [review_count, review_rows]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [shop_id_or_url_required, count_or_review_rows_required]
+      local_business_rating:
+        route_level: L3_live_metric
+        required_seeds: [shop_id, shop_url]
+        source_fields: [shop_rating, rating]
+        fact_pack_paths: ["items[].metrics.rating", "items[].metrics.comments"]
+        quality_gates: [shop_id_or_url_required, rating_or_review_rows_required]
+      review_text_sample:
+        route_level: L3_live_metric
+        required_seeds: [shop_id, shop_url]
+        source_fields: [review_body, author, review_time]
+        fact_pack_paths: ["items[].body", "items[].author"]
+        quality_gates: [shop_id_or_url_required, observed_text_required]
+      negative_review_signal:
+        route_level: L3_live_metric
+        required_seeds: [shop_id, shop_url]
+        source_fields: [review_body, rating, pain_terms]
+        fact_pack_paths: ["items[].body", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [shop_id_or_url_required, inference_separated_from_facts]
+  bilibili:
+    metrics:
+      social_engagement:
+        route_level: L3_live_metric
+        required_seeds: [video_url, bvid]
+        source_fields: [views, likes, danmaku_count, comment_count]
+        fact_pack_paths: ["items[].metrics.views", "items[].metrics.likes", "items[].metrics.comments"]
+        quality_gates: [video_id_or_url_required, metric_snapshot_required]
+      review_text_sample:
+        route_level: L3_live_metric
+        required_seeds: [video_url, bvid]
+        source_fields: [comment_text, danmaku_text]
+        fact_pack_paths: ["items[].top_comments[].text", "items[].body"]
+        quality_gates: [video_id_or_url_required, observed_text_required]
+      negative_review_signal:
+        route_level: L3_live_metric
+        required_seeds: [video_url, bvid]
+        source_fields: [comment_text, transcript_text, pain_terms]
+        fact_pack_paths: ["items[].top_comments[].text", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [video_id_or_url_required, comments_or_transcript_required]
+      content_publish_time:
+        route_level: L3_live_metric
+        required_seeds: [video_url, bvid]
+        source_fields: [published_at, created_at]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [video_id_or_url_required, timestamp_or_quality_flag_required]
+  public_article:
+    metrics:
+      review_text_sample:
+        route_level: L1_browser_metric
+        required_seeds: [article_url, source_registry]
+        source_fields: [title, body, author]
+        fact_pack_paths: ["items[].title", "items[].body", "items[].author"]
+        quality_gates: [article_url_required, readable_body_required]
+      negative_review_signal:
+        route_level: L1_browser_metric
+        required_seeds: [article_url, source_registry]
+        source_fields: [body, pain_terms]
+        fact_pack_paths: ["items[].body", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [visible_competitor_context_required, inference_separated_from_facts]
+      content_publish_time:
+        route_level: L1_browser_metric
+        required_seeds: [article_url, source_registry]
+        source_fields: [published_at, updated_at]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [article_url_required, timestamp_or_quality_flag_required]
+  reddit:
+    metrics:
+      social_engagement:
+        route_level: L3_live_metric
+        required_seeds: [query, thread_url, subreddit]
+        source_fields: [score, comments, subreddit]
+        fact_pack_paths: ["items[].metrics.likes", "items[].metrics.comments"]
+        quality_gates: [thread_url_or_query_required, metric_snapshot_required]
+      review_text_sample:
+        route_level: L3_live_metric
+        required_seeds: [query, thread_url, subreddit]
+        source_fields: [post_title, post_body, comment_text]
+        fact_pack_paths: ["items[].title", "items[].body", "items[].top_comments[].text"]
+        quality_gates: [thread_url_or_query_required, observed_text_required]
+      negative_review_signal:
+        route_level: L3_live_metric
+        required_seeds: [query, thread_url, subreddit]
+        source_fields: [post_body, comment_text, pain_terms]
+        fact_pack_paths: ["items[].body", "items[].top_comments[].text", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [thread_url_or_query_required, inference_separated_from_facts]
+      content_publish_time:
+        route_level: L3_live_metric
+        required_seeds: [query, thread_url, subreddit]
+        source_fields: [created_at]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [thread_url_or_query_required, timestamp_or_quality_flag_required]
+  tieba:
+    metrics:
+      social_engagement:
+        route_level: L2_controlled_metric
+        required_seeds: [query, thread_url, forum_name]
+        source_fields: [reply_count, likes]
+        fact_pack_paths: ["items[].metrics.comments", "items[].metrics.likes"]
+        quality_gates: [session_preflight_required, thread_url_required]
+      review_text_sample:
+        route_level: L2_controlled_metric
+        required_seeds: [query, thread_url, forum_name]
+        source_fields: [post_body, reply_text]
+        fact_pack_paths: ["items[].body", "items[].top_comments[].text"]
+        quality_gates: [session_preflight_required, observed_text_required]
+      content_publish_time:
+        route_level: L2_controlled_metric
+        required_seeds: [query, thread_url, forum_name]
+        source_fields: [published_at, floor_time]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [session_preflight_required, timestamp_or_quality_flag_required]
+  trustpilot:
+    metrics:
+      review_count:
+        route_level: L1_browser_metric
+        required_seeds: [brand_url, review_url]
+        source_fields: [review_count, review_rows]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [direct_review_page_required, count_or_review_rows_required]
+      rating_average:
+        route_level: L1_browser_metric
+        required_seeds: [brand_url, review_url]
+        source_fields: [rating, score]
+        fact_pack_paths: ["items[].metrics.rating"]
+        quality_gates: [direct_review_page_required, rating_scale_known]
+      review_text_sample:
+        route_level: L1_browser_metric
+        required_seeds: [brand_url, review_url]
+        source_fields: [review_title, review_body]
+        fact_pack_paths: ["items[].title", "items[].body"]
+        quality_gates: [direct_review_page_required, observed_text_required]
+  yahoo_chiebukuro:
+    metrics:
+      review_text_sample:
+        route_level: L1_browser_metric
+        required_seeds: [question_url]
+        source_fields: [question_body, answer_text]
+        fact_pack_paths: ["items[].body", "items[].top_comments[].text"]
+        quality_gates: [question_detail_url_required, observed_text_required]
+      negative_review_signal:
+        route_level: L1_browser_metric
+        required_seeds: [question_url]
+        source_fields: [question_body, answer_text, pain_terms]
+        fact_pack_paths: ["items[].body", "fact_summary.review_text_high_frequency_pain_terms"]
+        quality_gates: [question_detail_url_required, inference_separated_from_facts]
+      content_publish_time:
+        route_level: L1_browser_metric
+        required_seeds: [question_url]
+        source_fields: [published_at, updated_at]
+        fact_pack_paths: ["items[].published_at", "items[].data_quality_flags"]
+        quality_gates: [question_detail_url_required, timestamp_or_quality_flag_required]
+  rentio:
+    metrics:
+      review_count:
+        route_level: L3_live_metric
+        required_seeds: [product_url]
+        source_fields: [review_count, review_rows]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [product_review_page_required, count_or_review_rows_required]
+      rating_average:
+        route_level: L3_live_metric
+        required_seeds: [product_url]
+        source_fields: [rating, score]
+        fact_pack_paths: ["items[].metrics.rating"]
+        quality_gates: [product_review_page_required, rating_scale_known]
+      review_text_sample:
+        route_level: L3_live_metric
+        required_seeds: [product_url]
+        source_fields: [review_body, review_title]
+        fact_pack_paths: ["items[].title", "items[].body"]
+        quality_gates: [product_review_page_required, observed_text_required]
+  taobao_tmall:
+    metrics:
+      review_count:
+        route_level: L2_controlled_metric
+        required_seeds: [item_url, item_id]
+        source_fields: [comment_count, review_body]
+        fact_pack_paths: ["items[].metrics.comments", "fact_summary.item_count"]
+        quality_gates: [session_preflight_required, item_identity_required]
+      price_current:
+        route_level: L2_controlled_metric
+        required_seeds: [item_url, sku]
+        source_fields: [sale_price, promotion_price]
+        fact_pack_paths: ["items[].metrics.price", "items[].business.price"]
+        quality_gates: [session_preflight_required, price_timestamp_required]
+      sku_variant:
+        route_level: L2_controlled_metric
+        required_seeds: [item_url]
+        source_fields: [sku, variant, specification]
+        fact_pack_paths: ["items[].business.sku", "items[].tags"]
+        quality_gates: [session_preflight_required, variant_text_required]
+      sales_volume_signal:
+        route_level: L2_controlled_metric
+        required_seeds: [item_url]
+        source_fields: [sales_count, popularity]
+        fact_pack_paths: ["items[].metrics.sales", "items[].metrics.views"]
+        quality_gates: [session_preflight_required, visible_metric_required]
+  pinduoduo:
+    metrics:
+      review_count:
+        route_level: L3_live_metric
+        required_seeds: [product_url, item_id]
+        source_fields: [content, review_body, goods_id]
+        fact_pack_paths: ["items[].metrics.review_count", "fact_summary.item_count"]
+        quality_gates: [session_preflight_required, item_identity_required, count_or_review_rows_required]
+      price_current:
+        route_level: L3_live_metric
+        required_seeds: [query, product_url, item_id]
+        source_fields: [price, current_price, goods_id, url]
+        fact_pack_paths: ["items[].metrics.current_price", "items[].platform_fields.current_price"]
+        quality_gates: [session_preflight_required, item_identity_required, price_timestamp_required]
+      sales_volume_signal:
+        route_level: L3_live_metric
+        required_seeds: [query, product_url, item_id]
+        source_fields: [sales, sales_count, goods_id, url]
+        fact_pack_paths: ["items[].metrics.sales_count", "items[].platform_fields.sales_count"]
+        quality_gates: [session_preflight_required, visible_metric_required]
+  baidu:
+    metrics:
+      discovery_candidate_url:
+        route_level: L0_discovery
+        required_seeds: [query]
+        source_fields: [title, url, snippet]
+        fact_pack_paths: []
+        quality_gates: [candidate_url_required, no_direct_fact_import]
+        fact_import_allowed: false
+  bing:
+    metrics:
+      discovery_candidate_url:
+        route_level: L0_discovery
+        required_seeds: [query]
+        source_fields: [title, url, snippet]
+        fact_pack_paths: []
+        quality_gates: [candidate_url_required, no_direct_fact_import]
+        fact_import_allowed: false
+  google:
+    metrics:
+      discovery_candidate_url:
+        route_level: L0_discovery
+        required_seeds: [query]
+        source_fields: [title, url, snippet]
+        fact_pack_paths: []
+        quality_gates: [candidate_url_required, no_direct_fact_import]
+        fact_import_allowed: false
+  weibo:
+    metrics:
+      social_engagement:
+        route_level: L0_unavailable
+        required_seeds: [post_url, query]
+        source_fields: [likes, reposts, comments]
+        fact_pack_paths: []
+        quality_gates: [no_direct_fact_import, onboarding_required]
+        fact_import_allowed: false
+        unavailable_reason: weibo competitor facts are not proven in current baseline

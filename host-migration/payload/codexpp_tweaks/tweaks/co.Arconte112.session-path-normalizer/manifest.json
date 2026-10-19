@@ -1,0 +1,16 @@
+{
+  "id": "co.Arconte112.session-path-normalizer",
+  "name": "Session Path Normalizer",
+  "version": "0.1.0",
+  "githubRepo": "Arconte112/codex-plusplus-session-path-normalizer",
+  "description": "Keeps Codex++ thread rollout paths aligned with the Windows extended path form used by running sessions.",
+  "author": {
+    "name": "Arconte112"
+  },
+  "tags": [
+    "stability",
+    "sessions"
+  ],
+  "scope": "both",
+  "main": "index.js"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "codex-plusplus-better-terminal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Codex++ tweak for split panes, native popouts, terminal shortcuts, and runaway-process protection.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "validate": "codexplusplus validate-tweak ."
+  },
+  "devDependencies": {
+    "@codex-plusplus/sdk": "^0.1.5"
+  }
+}

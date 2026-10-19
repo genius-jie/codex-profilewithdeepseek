@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "P2.6_交付物独立评审",
+  "version": "1.0.0",
+  "description": "Custom skill: P2.6_交付物独立评审",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

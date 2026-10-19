@@ -1,0 +1,334 @@
+{
+  "schema_version": "data_source_decision_receipt.v1",
+  "scenario": "product_sales",
+  "dry_run": true,
+  "analysis_mode": "agent_research_compiled",
+  "agent_research_required": false,
+  "source_selection_owner": "agent_research",
+  "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+  "entity_type": "product",
+  "region_scope": "global",
+  "fact_dimensions": [
+    "price",
+    "sku",
+    "promotion",
+    "review_count",
+    "sales_signal"
+  ],
+  "decision_basis": [
+    "business_fact_authority",
+    "field_coverage",
+    "freshness",
+    "repeatability",
+    "crawl_friction"
+  ],
+  "research_depth": {
+    "status": "completed",
+    "entity_normalized": "AirPods Pro 3 SKU",
+    "discovery_methods": [
+      "official_entry_check",
+      "marketplace_search",
+      "social_platform_search",
+      "secondhand_platform_search",
+      "search_engine_execution",
+      "browser_probe"
+    ],
+    "candidate_family_count": 5,
+    "evidence_count": 11,
+    "minimum_depth_met": true
+  },
+  "discovery_process": {
+    "queries": [
+      "AirPods Pro 3 SKU 官方店 价格 SKU",
+      "AirPods Pro 3 SKU 京东 天猫 SKU 评价",
+      "AirPods Pro 3 SKU 小红书 口碑 价格",
+      "AirPods Pro 3 SKU 闲鱼 二手 残值"
+    ],
+    "platform_checks": [
+      "fixture:AirPods Pro 3 SKU 官方店 价格 SKU:ok",
+      "fixture:AirPods Pro 3 SKU 京东 天猫 SKU 评价:ok",
+      "fixture:AirPods Pro 3 SKU 小红书 口碑 价格:ok",
+      "fixture:AirPods Pro 3 SKU 闲鱼 二手 残值:ok"
+    ],
+    "official_entry_checks": [
+      "brand website product navigation",
+      "brand official store seller identity"
+    ],
+    "notes": [
+      "销售事实以官方售卖面和电商官方店为主，社交与二手只做口碑或残值交叉。",
+      "以上只是调研假设和查询计划；必须由 Agent 执行搜索/站内检查/官方入口核验后再裁决主事实源。",
+      "真实搜索/页面探测已执行；仍需 Agent 读 evidence 后选择主源、交叉源和排除源。"
+    ]
+  },
+  "source_evidence": {
+    "brand_official_store_cn": [
+      "search:AirPods Pro 3 SKU 官方店 价格 SKU -> Buy AirPods Pro 3 - Apple (https://www.apple.com/shop/buy-airpods/airpods-pro-3) :: Apple official buying page lists AirPods Pro 3 at $249.00 and shows direct Apple purchase and financing options. | browser_probe:ok title=Buy AirPods Pro 3 - Apple",
+      "search:AirPods Pro 3 SKU 官方店 价格 SKU -> AirPods Pro 3 - Apple (https://www.apple.com/airpods-pro/) :: Apple official product page names AirPods Pro 3, current product features and the buy entry. | browser_probe:ok title=AirPods Pro 3 - Apple",
+      "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 Wireless Earbuds - Amazon (https://www.amazon.com/Apple-Cancellation-Translation-Headphones-High-Fidelity/dp/B0FQFB8FMG) :: Amazon product surface shows Apple brand, offer surface, ratings signal and marketplace ordering context. | browser_probe:ok title=Apple AirPods Pro 3 Wireless Earbuds - Amazon",
+      "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 京东 / 天猫 官方店搜索 (https://search.jd.com/Search?keyword=AirPods%20Pro%203) :: JD search surface is used to locate Apple official or self-operated listings, SKU choices, price and review counts. | browser_probe:ok title=京东 AirPods Pro 3 搜索"
+    ],
+    "jd_tmall_official_store": [
+      "search:AirPods Pro 3 SKU 京东 天猫 SKU 评价 -> Apple AirPods Pro 3 京东 / 天猫 官方店搜索 (https://search.jd.com/Search?keyword=AirPods%20Pro%203) :: JD search surface is used to locate Apple official or self-operated listings, SKU choices, price and review counts. | browser_probe:ok title=京东 AirPods Pro 3 搜索"
+    ],
+    "xiaohongshu_product_posts": [
+      "search:AirPods Pro 3 SKU 小红书 口碑 价格 -> 小红书 AirPods Pro 3 口碑与价格笔记搜索 (https://www.xiaohongshu.com/search_result?keyword=AirPods%20Pro%203) :: Xiaohongshu search can surface user notes discussing fit, ANC, mentioned purchase price and subjective complaints. | browser_probe:ok title=小红书 AirPods Pro 3 搜索"
+    ],
+    "xianyu_resale_listing": [
+      "search:AirPods Pro 3 SKU 闲鱼 二手 残值 -> 闲鱼 / Goofish AirPods Pro 3 二手搜索 (https://www.goofish.com/search?q=AirPods%20Pro%203) :: Goofish/Xianyu search can show used asking prices, item condition and seller notes."
+    ]
+  },
+  "candidate_sources": [
+    {
+      "source_id": "brand_official_store_cn",
+      "platform": "brand official store",
+      "source_family": "official_source",
+      "role": "primary_fact_source",
+      "priority_rank": 1,
+      "score": {
+        "fact_authority": 5,
+        "field_coverage": 4,
+        "freshness": 4,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 20
+      },
+      "authority_basis": "品牌官方售卖面最能代表当前官方标价、SKU、库存和促销口径。",
+      "target_fields": [
+        "sku",
+        "list_price",
+        "promotion",
+        "inventory_status"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "S31A 判断官网/官方店是否走 opencli、API、SSR JSON 或 browser fallback。"
+    },
+    {
+      "source_id": "jd_tmall_official_store",
+      "platform": "JD/Tmall official store",
+      "source_family": "commerce_marketplace",
+      "role": "primary_fact_source",
+      "priority_rank": 2,
+      "score": {
+        "fact_authority": 4,
+        "field_coverage": 5,
+        "freshness": 5,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 21
+      },
+      "authority_basis": "电商官方店承载成交价格附近的实时价格、促销、评价数和 SKU 事实。",
+      "target_fields": [
+        "sale_price",
+        "sku",
+        "promotion",
+        "review_count",
+        "seller_name"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "优先探 OpenCLI/站点 API/SSR JSON，失败后才使用登录浏览器证据。"
+    },
+    {
+      "source_id": "xiaohongshu_product_posts",
+      "platform": "xiaohongshu",
+      "source_family": "social_content",
+      "role": "cross_check_source",
+      "priority_rank": 3,
+      "score": {
+        "fact_authority": 2,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 3,
+        "crawl_friction": 3,
+        "total": 15
+      },
+      "authority_basis": "社交内容能验证被提及价格和用户口碑，但不代表销售事实。",
+      "target_fields": [
+        "note_count",
+        "sentiment_sample",
+        "mentioned_price"
+      ],
+      "expected_collection_mode": "content_mining_analysis_summary",
+      "probe_hint": "仅作为交叉验证和口碑补充进入 S31C。"
+    },
+    {
+      "source_id": "xianyu_resale_listing",
+      "platform": "xianyu",
+      "source_family": "secondhand_marketplace",
+      "role": "market_signal_source",
+      "priority_rank": 4,
+      "score": {
+        "fact_authority": 1,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 2,
+        "crawl_friction": 2,
+        "total": 12
+      },
+      "authority_basis": "二手挂牌可反映残值，但不能代表新品销售价格。",
+      "target_fields": [
+        "resale_price",
+        "condition",
+        "listing_age"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "除非业务目标改为二手行情，否则不进入主链路。"
+    }
+  ],
+  "selected_primary_sources": [
+    {
+      "source_id": "brand_official_store_cn",
+      "platform": "brand official store",
+      "source_family": "official_source",
+      "role": "primary_fact_source",
+      "priority_rank": 1,
+      "score": {
+        "fact_authority": 5,
+        "field_coverage": 4,
+        "freshness": 4,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 20
+      },
+      "authority_basis": "品牌官方售卖面最能代表当前官方标价、SKU、库存和促销口径。",
+      "target_fields": [
+        "sku",
+        "list_price",
+        "promotion",
+        "inventory_status"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "S31A 判断官网/官方店是否走 opencli、API、SSR JSON 或 browser fallback。"
+    },
+    {
+      "source_id": "jd_tmall_official_store",
+      "platform": "JD/Tmall official store",
+      "source_family": "commerce_marketplace",
+      "role": "primary_fact_source",
+      "priority_rank": 2,
+      "score": {
+        "fact_authority": 4,
+        "field_coverage": 5,
+        "freshness": 5,
+        "repeatability": 4,
+        "crawl_friction": 3,
+        "total": 21
+      },
+      "authority_basis": "电商官方店承载成交价格附近的实时价格、促销、评价数和 SKU 事实。",
+      "target_fields": [
+        "sale_price",
+        "sku",
+        "promotion",
+        "review_count",
+        "seller_name"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "probe_hint": "优先探 OpenCLI/站点 API/SSR JSON，失败后才使用登录浏览器证据。"
+    }
+  ],
+  "cross_check_sources": [
+    {
+      "source_id": "xiaohongshu_product_posts",
+      "platform": "xiaohongshu",
+      "source_family": "social_content",
+      "role": "cross_check_source",
+      "priority_rank": 3,
+      "score": {
+        "fact_authority": 2,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 3,
+        "crawl_friction": 3,
+        "total": 15
+      },
+      "authority_basis": "社交内容能验证被提及价格和用户口碑，但不代表销售事实。",
+      "target_fields": [
+        "note_count",
+        "sentiment_sample",
+        "mentioned_price"
+      ],
+      "expected_collection_mode": "content_mining_analysis_summary",
+      "probe_hint": "仅作为交叉验证和口碑补充进入 S31C。"
+    }
+  ],
+  "excluded_sources": [
+    {
+      "source_family": "secondhand_marketplace",
+      "reason": "二手和回收价反映残值、成色和议价，不代表 AirPods Pro 3 新品销售价格或 SKU 事实。",
+      "can_be_reintroduced_as": "market_signal_source"
+    },
+    {
+      "source_family": "generic_web",
+      "reason": "通用网页和媒体导购可以发现促销线索，但不直接承载官方 SKU、实时库存或交易面评价数。",
+      "can_be_reintroduced_as": "discovery_source"
+    }
+  ],
+  "exclusion_evidence": {
+    "secondhand_marketplace": [
+      "BankMyCell/eBay/Goofish evidence all focuses on used resale value, condition and secondhand asking price.",
+      "二手平台可以帮助判断残值，但不能替代 Apple 官方购买页或电商交易面的新品事实。"
+    ],
+    "generic_web": [
+      "Tech/deal articles may quote discounts, but source-of-record fields still need Apple or marketplace pages.",
+      "通用搜索更适合发现入口，不适合作为主事实源。"
+    ]
+  },
+  "decision_trace": [
+    "Agent 先把需求判为商品销售分析，事实字段是价格、SKU、促销、评价规模和销售信号。",
+    "Apple 官方购买页是官方标价和官方购买条件的事实源，权威性高于媒体导购和社交讨论。",
+    "Best Buy/Amazon/JD/Tmall 交易面覆盖实时销售价、评价数、SKU 或卖家身份，是销售分析的第二主源。",
+    "小红书/YouTube/Reddit 只保留为口碑和体验交叉验证；BankMyCell/eBay/Goofish 二手证据被排除出新品销售主链。"
+  ],
+  "confidence": "high",
+  "clarification_needed": false,
+  "research_gaps": [],
+  "next_s31a_targets": [
+    {
+      "target": "brand official store",
+      "platform": "brand_official_store",
+      "source_decision_ref": "airpods_pro_3_product_sales.data_source_decision_receipt.v1.json",
+      "source_id": "brand_official_store_cn",
+      "source_family": "official_source",
+      "source_role": "primary_fact_source",
+      "source_priority_rank": 1,
+      "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+      "fact_dimensions": [
+        "sku",
+        "promotion"
+      ],
+      "collection_mode": "query_search_data_collection"
+    },
+    {
+      "target": "JD/Tmall official store",
+      "platform": "jd_tmall_official_store",
+      "source_decision_ref": "airpods_pro_3_product_sales.data_source_decision_receipt.v1.json",
+      "source_id": "jd_tmall_official_store",
+      "source_family": "commerce_marketplace",
+      "source_role": "primary_fact_source",
+      "source_priority_rank": 2,
+      "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+      "fact_dimensions": [
+        "sku",
+        "promotion",
+        "review_count"
+      ],
+      "collection_mode": "query_search_data_collection"
+    },
+    {
+      "target": "xiaohongshu",
+      "platform": "xiaohongshu",
+      "source_decision_ref": "airpods_pro_3_product_sales.data_source_decision_receipt.v1.json",
+      "source_id": "xiaohongshu_product_posts",
+      "source_family": "social_content",
+      "source_role": "cross_check_source",
+      "source_priority_rank": 3,
+      "business_goal": "针对 AirPods Pro 3 做价格 SKU 促销 销售分析",
+      "fact_dimensions": [
+        "note_count",
+        "sentiment_sample",
+        "mentioned_price"
+      ],
+      "collection_mode": "content_mining_analysis_summary"
+    }
+  ],
+  "source_decision_ref": "airpods_pro_3_product_sales.data_source_decision_receipt.v1.json"
+}

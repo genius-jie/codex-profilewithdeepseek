@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex++ 会话归档"
+  short_description: "仅在隔离 profile 内安全归档、恢复并核验 Codex++ 会话记录"
+  default_prompt: "Use $codex-plusplus-thread-archive to safely archive inactive Codex++ sessions."

@@ -1,0 +1,11 @@
+{
+  "status": "pass",
+  "evidenceType": "s12-failure-review",
+  "rerun_exit_code": 0,
+  "s12": "pass",
+  "w9": "pass",
+  "command_fingerprint": "python -c \" import re t=open(r'@@CODEXPP_HOME:forward@@/hooks/hook_common.py',encoding='utf-8').read() L=t.splitlines() def dump(name,maxl=30): for i,l ",
+  "root_cause": "inline python one-liner quoting/regex syntax error in read-only hook inspection; no artifact mutated",
+  "corrected_command_note": "same inspection completed via scratch script; hook_common resolver functions verified readable",
+  "recorded_at": "2026-10-14"
+}

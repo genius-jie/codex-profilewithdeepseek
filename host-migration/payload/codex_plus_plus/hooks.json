@@ -1,0 +1,79 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:escaped@@\" \"@@CODEXPP_HOME:escaped@@\\hooks\\hook_runner.py\" --event SessionStart --script \"@@CODEXPP_HOME:escaped@@\\hooks\\session_start_context.py\"",
+            "timeout": 30,
+            "statusMessage": "Loading host scope facts"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:escaped@@\" \"@@CODEXPP_HOME:escaped@@\\hooks\\hook_runner.py\" --event UserPromptSubmit --script \"@@CODEXPP_HOME:escaped@@\\hooks\\user_prompt_submit_input_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking prompt input safety"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:escaped@@\" \"@@CODEXPP_HOME:escaped@@\\hooks\\hook_runner.py\" --event PreToolUse --script \"@@CODEXPP_HOME:escaped@@\\hooks\\pre_tool_use_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking OpenClaw tool guard"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:escaped@@\" \"@@CODEXPP_HOME:escaped@@\\hooks\\hook_runner.py\" --event PermissionRequest --script \"@@CODEXPP_HOME:escaped@@\\hooks\\permission_request_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking OpenClaw permission guard"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:escaped@@\" \"@@CODEXPP_HOME:escaped@@\\hooks\\hook_runner.py\" --event PostToolUse --script \"@@CODEXPP_HOME:escaped@@\\hooks\\post_tool_use_audit.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"@@PYTHON_EXE:escaped@@\" \"@@CODEXPP_HOME:escaped@@\\hooks\\hook_runner.py\" --event Stop --script \"@@CODEXPP_HOME:escaped@@\\hooks\\stop_guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking OpenClaw pending closure"
+          }
+        ]
+      }
+    ]
+  }
+}

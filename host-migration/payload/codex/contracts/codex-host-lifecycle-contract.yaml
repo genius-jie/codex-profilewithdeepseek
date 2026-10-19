@@ -1,0 +1,477 @@
+schema_version: codex-host-lifecycle-contract.v1
+contract_id: codex-host-lifecycle-contract
+title: Codex Host Lifecycle Contract
+domain: codex-host
+tier: L1
+doc_status: active-ssot
+architectural_owner: cross_plane_governance_protocol
+host: codex_desktop
+related:
+  - @@CODEX_HOME:win@@\skills\codex-host-lifecycle\SKILL.md
+  - @@CORE_ROOT:win@@\governance\review-scope.yaml
+  - @@CORE_ROOT:win@@\contracts\experience-trigger-policy.yaml
+
+purpose: >
+  Define how Agent OS uses Codex-hosted objects without treating them as Core
+  Runtime state. The Contract is the lifecycle-rule SSOT; the
+  codex-host-lifecycle Skill performs the native host operations.
+
+authority_order:
+  normative_ssot: @@CODEX_HOME:win@@\contracts\codex-host-lifecycle-contract.yaml
+  execution_companion: @@CODEX_HOME:win@@\skills\codex-host-lifecycle\SKILL.md
+  automation_prompts: thin_consumers_only
+  conflict_rule: contract_over_skill_over_automation_prompt
+
+lifecycle_model:
+  required_questions:
+    - create
+    - ready
+    - operate
+    - retire
+  invariant: external_object_creation_does_not_imply_operational_readiness
+
+objects:
+  thread:
+    create:
+      entrypoint: create_thread
+      identity: exact_thread_id
+      rule: >
+        Create once with the final visible title and an automation-labelled
+        passive bootstrap. The bootstrap is user-visible transport, not a
+        Human-authored request or Decision. It carries only the exact Review
+        identity and the frozen OS-local Human Decision Request needed for the
+        Review Task Agent's first response.
+    ready:
+      proof:
+        - exact_thread_read_complete_with_agent_message
+        - agent_message_contains_review_marker_complete_card_and_exact_decision_strings
+        - agent_presentation_turn_has_zero_tool_or_permission_activity
+      before_ready_forbidden:
+        - follow_up_message
+        - rename
+        - archive
+        - decision_write
+        - owner_or_validator_dispatch
+    operate:
+      entrypoints:
+        - send_message_to_thread
+        - set_thread_title
+      review_thread:
+        applicability: detached_review_mode_only_not_recurring_single_task
+        identity_fields:
+          - target_os
+          - package_id
+          - package_approval_sha256
+          - purpose
+        purpose: review
+        marker_template: OS-REVIEW-CARD-v1|<target_os>|<package_id>|<package_approval_sha256>|review
+        human_decision_request_schema: os-human-decision-request.v1
+        content_contract_ref: @@GENERAL_ROOT:win@@\control\contracts\os-governance-trigger-contract.yaml#review_thread_presentation.human_decision_request
+        material_source: exact_os_local_tick_projection_only
+        incomplete_material_action: preserve_package_and_create_nothing
+        native_static_agent_message_delivery: unsupported
+        delivery_reason: >
+          Current native create_thread and send_message_to_thread entrypoints
+          create user-visible input turns; they do not inject a deterministic
+          Agent-role message. The passive bootstrap is therefore the smallest
+          native delivery path and must be exact-read after the Agent responds.
+        passive_bootstrap:
+          visible_role: automation_transport
+          human_authored: false
+          decision_evidence: false
+          instruction: render_only_the_supplied_complete_card_then_stop
+          prohibited_in_presentation_turn:
+            - tool_shell_file_browser_or_network_activity
+            - skill_or_subagent_activity
+            - permission_request
+            - audit_decision_owner_or_validator_work
+          frozen_governance_content_rule: >
+            The Agent may render the Package-frozen 7+1 and anti-overdesign
+            content verbatim. It must not re-audit, add an inference, change the
+            recommendation, or create a new governance conclusion.
+        first_agent_response_readiness: >
+          Exact-read the native Thread with turns. Readiness requires one Agent
+          response containing the same review marker, every section declared by
+          the OS-local content contract and the exact Package-ID/SHA decision
+          strings. That presentation turn has no tool or permission activity.
+          A bootstrap user turn by itself is not ready.
+        exact_human_decision_resume:
+          condition: real_human_message_matches_exact_package_id_and_sha_choice
+          entrypoint: os_local_formal_decision_entry
+          max_calls: 1
+          frozen_inputs:
+            - package_ref
+            - package_approval_sha256
+            - package_raw_sha256
+            - selected_decision
+            - human_feedback_when_required
+          success_response: immutable_decision_ref_only_then_stop
+          later_progression: next_cron_tick_notifies_existing_owner_and_validator
+          cron_chat_interpretation: forbidden
+        decision_precheck: >
+          Check the OS-local formal Decision for this exact Package SHA first.
+          If it already exists, advance the local tick action and do not ask for
+          approval again.
+        active_match_count: exactly_one_reuse; more_than_one_stop
+        archived_match: respect_archive_and_do_not_recreate
+        archived_non_terminal_match: >
+          If the exact archived Review Thread matches a non-terminal current
+          action, fail closed and report that Human restoration of the exact
+          Thread is required. Do not restore it automatically and do not create
+          a replacement Thread.
+        no_match: create_only_after_active_and_archived_queries_are_complete
+        query_failure: create_or_send_nothing
+        chat_is_decision_evidence: false
+        action_key_contract:
+          schema: os-review-action-key.v1
+          authority: this_contract
+          invariant_base_identity:
+            - target_os
+            - package_id
+            - package_approval_sha256
+            - action_type
+          action_specific_identity_rule: >
+            Each OS Tick adds only the already-validated immutable identity
+            directly relevant to that action, such as a Decision or Evidence
+            SHA256 or a stable machine reason code. It must not read a ref path
+            to guess identity, switch identity algorithms based on file
+            visibility, or fall back to hashing a locator.
+          missing_required_identity: fail_closed_before_action_projection
+          encoding: canonical_json_utf8_sort_keys_compact
+          digest: sha256
+          excluded:
+            - updated_at_or_runtime_time
+            - runner_or_thread_id
+            - package_absolute_path
+            - natural_language_card_or_message
+            - validation_or_implementation_instruction_text
+            - json_field_order
+          semantics: derived_delivery_identity_not_business_state_or_ssot
+      owner_dispatch:
+        identity_fields:
+          - target_os
+          - decision_ref
+          - purpose
+        purpose: owner_dispatch
+        consumer: exact_ready_review_task_agent_turn
+        formal_entry: action_declared_os_local_implementation_entry
+        rule: >
+          Keep dispatch identity separate from the pre-Decision Review identity.
+          The cron only sends the bounded notification. The receiving Review
+          Task Agent consumes the Package-declared OS-local Owner entry; the
+          cron does not execute it.
+      validator_dispatch:
+        purpose: independent_validation
+        consumer: action_declared_os_local_independent_validator_entry
+        formal_entry: action_validation_entry
+        rule: >
+          The cron only sends the validation_required notification to the same
+          exact Review Task. The receiving task invokes the Package-declared
+          independent validation entry, which must bind the exact Owner
+          Evidence. The cron does not validate or write Validation Evidence.
+      read_only_query:
+        entrypoint: @@CODEX_HOME:win@@\automation-tools\codex_host_thread_query.py
+        rule: >
+          Use this Codex app-server query for automation thread discovery,
+          exact thread readability, and reuse. Use --match for a fully paged
+          thread/list and --read-thread-id for thread/read. A list result is
+          usable only when status=ok and complete=true. The helper reports
+          match_cardinality and multiple_matches explicitly. Both operations
+          query the exact Codex profile through the official protocol and do
+          not read or edit SQLite directly.
+        failure_rule: >
+          A timeout, host_error, complete=false, or multiple active matches is
+          a Codex Desktop host incident. Preserve the Package, Decision and
+          existing Thread facts, record the native diagnostics, and create or
+          send nothing from an incomplete or ambiguous query result. The next
+          run retries only the same exact marker query.
+    retire:
+      entrypoint: set_thread_archived
+      precondition: terminal_result_presented_in_exact_review_thread
+      terminal_conditions:
+        - final_result_reference_presented
+        - reject_or_observation_only_presented
+        - revise_or_supersede_presented
+      proof:
+        - absent_from_active_thread_list
+        - present_in_archived_thread_list
+        - thread_store_archived_equals_true
+        - rollout_moved_to_archived_sessions
+      native_fault_protocol:
+        collect:
+          - exact_thread_id
+          - thread_store_row_and_rollout_path
+          - rollout_existence_byte_count_and_first_jsonl_record
+          - matching_codex_desktop_log_lines
+        empty_rollout_race:
+          condition: logs_identify_empty_rollout_and_rollout_is_now_non_empty
+          action: request_one_codex_desktop_restart_then_retry_same_native_archive_once
+
+  goal:
+    create:
+      entrypoint: create_goal_or_thread_goal_set
+      identity: exact_thread_id
+      rule: >
+        Create a Goal only after explicit Human intent for long-running work.
+        Its objective must define Core terminal completion separately from a
+        human/clarification wait boundary.
+    ready:
+      proof:
+        - thread_goal_get_returns_non_null
+        - goal_status_is_active_or_explicitly_user_paused
+      non_authoritative_to_core: true
+    operate:
+      readback:
+        entrypoint: @@CODEX_HOME:win@@\automation-tools\codex_host_thread_query.py --goal-thread-id <exact_thread_id>
+        protocol: thread/goal/get
+        rule: >
+          Query the exact current Codex task through the native app-server;
+          do not infer Goal status from a chat summary or a LangGraph snapshot.
+      human_gate:
+        condition: core_status_is_WAITING_INPUT_and_interrupt_is_human_or_clarification
+        action: >
+          Retain the existing active Goal. A LangGraph Human Gate pauses only
+          business progression; it does not set Goal paused, complete, or clear.
+        prohibited:
+          - goal_clear_for_human_wait
+          - goal_complete_for_human_wait
+          - extra_turn_start
+          - cron_or_heartbeat_reactivation
+      exact_human_resume:
+        preconditions:
+          - fresh_checkpoint_bound_human_command_choice
+          - exact_human_response_committed_by_human_decision_transport
+          - same_core_thread_and_successor_checkpoint
+        action: >
+          The Human reply already starts the current Codex task turn. Read the
+          packet's complete human_command_contract, then use the existing Core
+          human-decision entry with the exact fresh checkpoint; bare upstream
+          text never infers a return target. When the successor is work/review,
+          let that same active Goal consume it; do not create a new task, Goal,
+          Cron, Heartbeat, or parallel turn.
+      human_wait_delivery:
+        rule: >
+          A current human or clarification packet renders one decision card and
+          then stops continuation polling. The card exposes complete,
+          target-bound choices; it does not repeatedly report that a formal
+          writeback is still pending.
+      user_pause_or_clear:
+        rule: >
+          Respect an explicit Goal UI pause or clear. Do not recreate, activate,
+          or replace a missing, complete, blocked, or user-paused Goal.
+      terminal:
+        complete_condition: core_status_is_COMPLETE
+        complete_action: host_may_mark_goal_complete
+        stopped_condition: core_status_is_STOPPED_or_human_explicit_stop
+        stopped_action: preserve_stop_explanation_or_explicit_user_clear_without_success_claim
+        user_clear_condition: human_explicitly_clears_goal
+        user_clear_action: host_may_clear_goal
+      proof:
+        - goal_non_null_before_and_after_human_gate
+        - same_codex_task_after_exact_human_resume
+        - same_core_thread_successor_checkpoint
+        - no_new_runner_task
+    retire:
+      rule: >
+        Retire only after Core reaches a real terminal state or the Human
+        explicitly clears the Goal.
+
+  hook:
+    create:
+      entrypoint: declared_hook_install_or_configuration_entry
+      identity: declared_hook_path_and_name
+    ready:
+      proof:
+        - hook_path_resolves
+        - host_load_confirmed
+        - one_observable_execution
+    operate:
+      rule: Update only the declared hook and verify its intended scope and dependencies.
+    retire:
+      rule: Remove or disable the active hook route after checking declared consumers.
+      proof:
+        - active_route_absent
+        - dependent_configuration_rechecked
+
+  instructions:
+    create:
+      entrypoint: declared_instruction_file_path
+      identity: absolute_path_and_scope_root
+    ready:
+      proof:
+        - effective_scope_confirmed
+        - inheritance_order_confirmed
+        - nearest_override_confirmed
+    operate:
+      rule: Change the effective instruction source, not a shadowed copy.
+    retire:
+      rule: Remove the active route and resolve competing authoritative text.
+      proof:
+        - active_route_absent
+        - effective_instruction_rechecked
+
+  skill:
+    create:
+      entrypoint: codex_discoverable_skills_directory
+      identity: skill_name_and_absolute_directory
+    ready:
+      proof:
+        - frontmatter_and_structure_validated
+        - skill_discoverable
+    operate:
+      rule: Keep its governing Contract reference current and preserve declared invocation scope.
+    retire:
+      rule: Migrate active callers before retirement or renaming.
+      proof:
+        - active_references_migrated
+        - old_entrypoint_no_longer_selected
+
+  automation:
+    create:
+      entrypoint: automation_update
+      identity: automation_id
+    ready:
+      proof:
+        - persisted_automation_definition_read_back
+        - target_scope_and_status_confirmed
+    operate:
+      rule: Update the scoped native definition, then reread persisted target, status, schedule, and prompt.
+      recurring_single_task:
+        native_kind: heartbeat
+        applicability: one_os_requires_at_most_one_active_lifecycle_task
+        target_scope: one_fixed_os_lifecycle_and_human_interaction_task
+        active_invariant: exactly_one_active_lifecycle_task_per_os
+        title_policy: fixed_os_lifecycle_title_without_status_or_package_suffix
+        package_multiplexing_identity: target_os_plus_package_id_plus_package_approval_sha256_plus_action_key
+        review_delivery: render_each_new_review_card_once_in_the_same_lifecycle_task
+        extra_review_task_creation: forbidden
+        current_fact_source: rerun_os_local_formal_tick_on_every_heartbeat
+        effective_model_policy:
+          model: gpt-5.6-sol
+          reasoning_effort: xhigh
+          authority: native_target_thread_settings
+          verification: observed_heartbeat_turn_context
+          global_default_must_not_be_changed: true
+        pre_package_input_handoff:
+          applicability: existing_evidence_backed_local_observation_or_candidate
+          role: heartbeat_wakes_and_delivers_only
+          input_identity: existing_candidate_id_or_observation_id
+          bounded_fields:
+            - input_id
+            - origin_os
+            - source_task_ref
+            - owner
+            - scope
+            - observed_fact
+            - evidence_refs
+            - trigger_source
+          consumer: existing_os_local_experience_owner_workflow
+          execution_contract_ref: @@GENERAL_ROOT:win@@\control\contracts\os-governance-trigger-contract.yaml#heartbeat_owner_handoff.owner_execution
+          closure_contract_ref: @@GENERAL_ROOT:win@@\control\contracts\os-governance-trigger-contract.yaml#heartbeat_owner_handoff.input_closure
+          allowed_actions:
+            - read_declared_local_input
+            - deliver_input_reference_to_owner
+            - report_owner_progress_in_same_task
+          owner_actions:
+            - candidate_admission
+            - observation_reflection
+            - cleaning_classification_aggregation
+            - package_composition
+          source_scope_mismatch:
+            action: retain_input_and_report_source_owner
+            retry_condition: input_id_or_evidence_refs_change
+            repeat_notification: once_per_input_identity
+            package_creation: forbidden
+          completion_entrypoint:
+            owner: existing_os_local_experience_owner
+            command: existing_os_local_owner_completion_entrypoint
+            writes: same_existing_observation_record_only
+            prerequisite: schema_valid=true
+          semantic_analysis_owner: existing_os_local_experience_owner
+          formal_tick_role: read_only_package_lifecycle_projection
+          normal_completion: no_experience_input_without_explicit_problem_or_declared_runtime_event
+          raw_source_scope: source_os_local_only
+          new_component_count:
+            scheduler: 0
+            runtime: 0
+            registry: 0
+            database: 0
+            worker: 0
+            state_machine: 0
+        transcript_authority: host_evidence_only_not_package_decision_or_business_state
+        human_decision_boundary: exact_package_choice_in_current_task_requires_os_local_formal_decide
+        owner_validator_boundary: same_visible_task_but_distinct_producer_roles_and_evidence_binding
+        post_decision_progression: continuous_fresh_tick_owner_fresh_tick_validator_fresh_tick_final
+        scheduler_wait_between_owner_validator_final: forbidden
+        in_memory_transition_limit_per_wake: 4
+        progress_rule: continue_only_after_formal_write_changes_action_or_action_key
+        no_progress_rule: stop_when_same_action_key_repeats_without_formal_progress
+        no_progress_assessment: after_actual_owner_attempt_or_specific_blocker_not_before_dispatch
+        transition_limit_behavior:
+          action: preserve_unfinished_input_and_stop_current_wake
+          next_wake: next_scheduled_heartbeat_reuses_same_input_identity
+          terminal_claim: forbidden_until_input_closure_contract_is_satisfied
+          user_visible_result: report_remaining_input_and_next_trigger
+        stop_conditions:
+          - human_gate
+          - precondition_or_identity_drift
+          - formal_entry_failure
+          - owner_failure
+          - validator_failure
+          - incomplete_analysis_or_review_material
+          - no_progress
+          - terminal_action
+        terminal_behavior: present_once_and_keep_lifecycle_task_active
+        target_failure: fail_closed_without_name_scan_guess_or_automatic_replacement
+        rollover: human_directed_host_owner_archives_old_and_rebinds_existing_automation
+        non_goals:
+          - permanent_physical_thread_identity
+          - automatic_rollover_engine
+          - thread_registry_or_mapping_database
+    retire:
+      rule: Pause or delete through the native entrypoint after checking target-thread compatibility.
+      proof:
+        - persisted_status_matches_requested_action
+        - no_unresolved_target_thread_dependency
+
+host_capability_projection:
+  policy_source: @@GENERAL_ROOT:win@@\control\host-capability-publication-manifest.yaml
+  lifecycle_entrypoint: @@CODEX_HOME:win@@\Start-Codex.ps1
+  writer: @@GENERAL_ROOT:win@@\tooling\Sync-HostCapabilityProjection.ps1
+  host_id: codex
+  mode: Apply
+  powershell: @@POWERSHELL_EXE:win@@
+  ordering: before_host_start
+  failure_policy: report_and_continue_host_start
+  boundary:
+    - writer_owns_only_manifest_selected_projection
+    - preserve_manifest_external_host_catalog_entries
+    - never_touch_codex_plus_plus_profile
+
+non_goals:
+  - codex_user_permission_management
+  - codex_internal_state_management
+  - thread_registry_or_host_object_history_database
+  - host_manager_or_controller
+  - business_runtime_control
+  - goal_state_in_core_checkpoint_or_sqlite
+  - goal_registry_or_goal_worker
+  - goal_continuation_cron_or_hook_controller
+
+boundaries:
+  prohibited_actions:
+    - direct_thread_store_sqlite_edits
+    - manual_rollout_file_moves
+    - core_graphstate_or_checkpoint_writes
+    - parent_os_asset_writes
+
+experience_promotion:
+  eligible_evidence:
+    - repeated_observation
+    - high_impact_single_event_with_clear_mechanism
+    - forward_looking_architectural_boundary
+  required_analysis:
+    - observed_facts
+    - stable_invariant
+    - owning_host_object
+    - verification_method

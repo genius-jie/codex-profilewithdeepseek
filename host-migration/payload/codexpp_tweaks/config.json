@@ -1,0 +1,200 @@
+{
+  "tweakUpdateChecks": {
+    "co.bennett.ui-improvements": {
+      "checkedAt": "2026-10-19T01:13:43.330Z",
+      "repo": "b-nnett/codex-plusplus-bennett-ui",
+      "currentVersion": "1.0.3",
+      "latestVersion": "1.0.3",
+      "latestTag": "v1.0.3",
+      "releaseUrl": "https://github.com/b-nnett/codex-plusplus-bennett-ui/releases/tag/v1.0.3",
+      "updateAvailable": false
+    },
+    "co.bennett.custom-keyboard-shortcuts": {
+      "checkedAt": "2026-10-19T01:13:44.222Z",
+      "repo": "b-nnett/codex-plusplus-keyboard-shortcuts",
+      "currentVersion": "0.1.1",
+      "latestVersion": "0.1.1",
+      "latestTag": "v0.1.1",
+      "releaseUrl": "https://github.com/b-nnett/codex-plusplus-keyboard-shortcuts/releases/tag/v0.1.1",
+      "updateAvailable": false
+    },
+    "co.bennett.windows-computer-use": {
+      "checkedAt": "2026-10-16T09:45:01.059Z",
+      "repo": "b-nnett/codex-plusplus-windows-computer-use",
+      "currentVersion": "0.1.0",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    },
+    "co.bennett.better-browser": {
+      "checkedAt": "2026-10-19T02:09:35.982Z",
+      "repo": "b-nnett/codex-plusplus-better-browser",
+      "currentVersion": "0.1.2",
+      "latestVersion": "0.1.2",
+      "latestTag": "v0.1.2",
+      "releaseUrl": "https://github.com/b-nnett/codex-plusplus-better-browser/releases/tag/v0.1.2",
+      "updateAvailable": false
+    },
+    "co.Arconte112.followup": {
+      "checkedAt": "2026-10-16T09:09:57.800Z",
+      "repo": "Arconte112/codex-plusplus-followup",
+      "currentVersion": "0.3.0",
+      "latestVersion": "0.3.0",
+      "latestTag": "v0.3.0",
+      "releaseUrl": "https://github.com/Arconte112/codex-plusplus-followup/releases/tag/v0.3.0",
+      "updateAvailable": false
+    },
+    "co.sakushi.add-project-by-path": {
+      "checkedAt": "2026-10-16T01:20:51.426Z",
+      "repo": "ImSakushi/codex-plusplus-add-project-path",
+      "currentVersion": "0.1.0",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    },
+    "co.bennett.goal": {
+      "checkedAt": "2026-10-16T03:02:45.884Z",
+      "repo": "b-nnett/codex-plusplus-goal",
+      "currentVersion": "1.0.0",
+      "latestVersion": "1.0.0",
+      "latestTag": "1.0.0",
+      "releaseUrl": "https://github.com/b-nnett/codex-plusplus-goal/releases/tag/1.0.0",
+      "updateAvailable": false
+    },
+    "co.qoli.disable-escape": {
+      "checkedAt": "2026-10-17T10:36:22.625Z",
+      "repo": "qoli/codex-disable-escape-tweak",
+      "currentVersion": "0.1.0",
+      "latestVersion": "0.1.0",
+      "latestTag": "v0.1.0",
+      "releaseUrl": "https://github.com/qoli/codex-disable-escape-tweak/releases/tag/v0.1.0",
+      "updateAvailable": false
+    },
+    "co.bennett.better-terminal": {
+      "checkedAt": "2026-10-16T02:52:20.848Z",
+      "repo": "b-nnett/codex-plusplus-better-terminal",
+      "currentVersion": "1.0.0",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    },
+    "co.bennett.codex-tab-switcher": {
+      "checkedAt": "2026-10-19T02:09:35.352Z",
+      "repo": "b-nnett/codex-plusplus-tab-switcher",
+      "currentVersion": "1.0.0",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    },
+    "co.shivam94.reasoning-fixes": {
+      "checkedAt": "2026-10-19T01:13:19.039Z",
+      "repo": "shivam2014/codex-plusplus-reasoning-fixes",
+      "currentVersion": "1.2.0",
+      "latestVersion": "1.3.3",
+      "latestTag": "v1.3.3",
+      "releaseUrl": "https://github.com/shivam2014/codex-plusplus-reasoning-fixes/releases/tag/v1.3.3",
+      "updateAvailable": true
+    },
+    "com.lobster.auto-follow-up": {
+      "checkedAt": "2026-10-19T01:13:18.570Z",
+      "repo": "lobster/auto-follow-up",
+      "currentVersion": "1.0.0",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    },
+    "co.Arconte112.session-path-normalizer": {
+      "checkedAt": "2026-10-16T16:06:23.911Z",
+      "repo": "Arconte112/codex-plusplus-session-path-normalizer",
+      "currentVersion": "0.1.0",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    },
+    "com.codexpp.smoke-p1-queue": {
+      "checkedAt": "2026-05-25T02:23:14.59Z",
+      "repo": "codexpp/smoke-p1-queue",
+      "currentVersion": "0.0.1",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "GitHub returned 403"
+    },
+    "com.codexpp.smoke-firstfact-queue": {
+      "checkedAt": "2026-05-25T04:12:08.657Z",
+      "repo": "codexpp/smoke-firstfact-queue",
+      "currentVersion": "0.0.1",
+      "latestVersion": null,
+      "latestTag": null,
+      "releaseUrl": null,
+      "updateAvailable": false,
+      "error": "no GitHub release found"
+    }
+  },
+  "tweaks": {
+    "co.bennett.better-terminal": {
+      "enabled": false
+    },
+    "co.bennett.custom-keyboard-shortcuts": {
+      "enabled": false
+    },
+    "co.bennett.better-browser": {
+      "enabled": false
+    },
+    "co.bennett.ui-improvements": {
+      "enabled": false
+    },
+    "co.qoli.disable-escape": {
+      "enabled": false
+    },
+    "co.sakushi.add-project-by-path": {
+      "enabled": false
+    },
+    "co.bennett.codex-tab-switcher": {
+      "enabled": false
+    },
+    "co.Arconte112.followup": {
+      "enabled": true
+    },
+    "com.lobster.auto-follow-up": {
+      "enabled": true
+    },
+    "co.bennett.goal": {
+      "enabled": false
+    },
+    "co.Arconte112.session-path-normalizer": {
+      "enabled": true
+    },
+    "co.bennett.windows-computer-use": {
+      "enabled": true
+    },
+    "co.shivam94.reasoning-fixes": {
+      "enabled": false
+    }
+  },
+  "codexPlusPlus": {
+    "autoUpdate": false,
+    "updateCheck": {
+      "checkedAt": "2026-10-13T13:03:08.693Z",
+      "currentVersion": "1.0.0",
+      "latestVersion": "1.0.0",
+      "releaseUrl": "https://github.com/b-nnett/codex-plusplus/releases/tag/v1.0.0",
+      "releaseNotes": "Codex++ 1.0.0 is the first stable release for the local tweak/runtime layer.\n\nHighlights:\n- Cleaner patch and re-patch flow for modern Codex app updates, including restart/reopen handling and refreshed unpatched backups.\n- New debug command: `codexplusplus debug` shows Codex install path, runtime type, data paths, open state, and bridge status.\n- Owl runtime detection and native macOS bridge groundwork for OS-level tweak capabilities.\n- Multi-file tweak authoring docs covering the SDK, manifest, lifecycle, UI/DOM, native bridge, and distribution.\n- Removed default tweak install logic so 1.0.0 starts clean.\n- Fixed Settings sidebar injection so Codex++ nav does not get stuck in the main Codex sidebar.\n- Hardened Windows uninstall cleanup for watcher tasks, watcher scripts, and leftover watcher processes.\n- Added `codexplusplus uninstall --purge` for a full Codex++ user-data reset.\n\nVerification:\n- `npm run build`\n- `npm test` passes 143/143\n- `npm audit --workspaces --include-workspace-root` reports 0 vulnerabilities.",
+      "updateAvailable": false
+    },
+    "safeMode": false
+  }
+}

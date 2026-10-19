@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "S31_爬虫策略探勘与选型",
+  "version": "1.0.0",
+  "description": "Custom skill: S31_爬虫策略探勘与选型",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

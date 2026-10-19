@@ -1,0 +1,15 @@
+{
+  "user_profile": "C:\\Users\\YOUR_NAME",
+  "codexpp_profile": "D:\\CodexPlusPlusProfile",
+  "general_root": "D:\\AgentAssets\\prompt_Knowledge",
+  "python_exe": "C:\\Users\\YOUR_NAME\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+  "powershell_exe": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+  "node_exe": "C:\\Program Files\\nodejs\\node.exe",
+  "program_files": "C:\\Program Files",
+  "system_root": "C:\\Windows",
+  "codexpp_source": "D:\\AgentTools\\codex-plusplus\\source",
+  "suite_root": "E:\\personal-ai-suite",
+  "core_root": "E:\\personal-ai-suite\\automation-core",
+  "testing_root": "E:\\AI测试用例",
+  "openclaw_root": "D:\\openclaw-mono"
+}

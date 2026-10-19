@@ -1,0 +1,11 @@
+{
+  "status": "pass",
+  "evidenceType": "s12-failure-review",
+  "rerun_exit_code": 0,
+  "s12": "pass",
+  "w9": "pass",
+  "command_fingerprint": "$env:CODEX_HOME='@@CODEXPP_HOME:escaped@@'; codex -a never --json --skip-git-repo-check exec -C 'D:\\' \"echo deterministic-ok\" 2>&1 | Select-Object -Firs",
+  "root_cause": "codex exec flag order probe for host smoke; corrected form used and passed real turn",
+  "corrected_command_note": "native codex exec --json turn.completed agent_message ok; codex++ exec --json exit 0 with two tool calls",
+  "recorded_at": "2026-10-14"
+}

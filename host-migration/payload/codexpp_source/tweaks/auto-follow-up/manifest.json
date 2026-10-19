@@ -1,0 +1,15 @@
+{
+  "id": "com.lobster.auto-follow-up",
+  "name": "Auto Follow-up",
+  "version": "1.0.0",
+  "githubRepo": "lobster/auto-follow-up",
+  "description": "Automatically captures JSON follow-up payloads and triggers automated continuations in Codex.",
+  "author": {
+    "name": "Antigravity",
+    "url": "https://github.com/anomalyco/codex-plusplus"
+  },
+  "tags": ["automation", "ui"],
+  "scope": "both",
+  "main": "index.js",
+  "permissions": ["ipc", "filesystem", "settings"]
+}

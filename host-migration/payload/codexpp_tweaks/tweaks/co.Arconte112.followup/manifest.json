@@ -1,0 +1,17 @@
+{
+  "id": "co.Arconte112.followup",
+  "name": "Codex Follow-up",
+  "version": "0.3.0",
+  "githubRepo": "Arconte112/codex-plusplus-followup",
+  "description": "Render OpenWebUI-style clickable follow-up panels and sync the Codex AGENTS.md instruction.",
+  "author": {
+    "name": "Arconte112",
+    "url": "https://github.com/Arconte112"
+  },
+  "tags": [
+    "ui",
+    "followups"
+  ],
+  "scope": "both",
+  "main": "index.js"
+}

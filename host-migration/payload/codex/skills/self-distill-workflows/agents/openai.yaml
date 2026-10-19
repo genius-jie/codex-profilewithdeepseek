@@ -1,0 +1,7 @@
+interface:
+  display_name: "Self-Distill Workflows"
+  short_description: "Find repeated work and package it carefully"
+  default_prompt: "Use $self-distill-workflows to review my recent work and propose reusable Codex capabilities."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,14 @@
+[
+  {
+    "command": "globalDictationHold",
+    "key": null
+  },
+  {
+    "command": "globalDictationToggle",
+    "key": "Alt+X"
+  },
+  {
+    "command": "realtimeVoice",
+    "key": null
+  }
+]

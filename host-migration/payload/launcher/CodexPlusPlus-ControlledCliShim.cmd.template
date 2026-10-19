@@ -1,0 +1,32 @@
+@echo off
+rem CODEXPP_CONTROLLED_LIFECYCLE
+setlocal
+if /I "%~1"=="update" goto :managed_update
+if /I "%~1"=="self-update" goto :managed_update
+if /I "%~1"=="repair" goto :managed_repair
+if /I "%~1"=="install" goto :managed_install
+"E:\nodejs\node-v22.22.0-win-x64\node.exe" "@@CODEXPP_SOURCE:win@@\packages\installer\dist\cli.js" %*
+set "CODEXPP_EXIT=%ERRORLEVEL%"
+endlocal & exit /b %CODEXPP_EXIT%
+
+:managed_install
+echo Direct native install is blocked because it recreates the retired watcher and overwrites managed launchers. Use the S34 controlled install procedure. 1>&2
+endlocal & exit /b 64
+
+:managed_update
+if not "%~2"=="" (
+  echo Advanced update arguments must use "@@LAUNCHER_ROOT:win@@\Update-CodexPlusPlusInstaller.ps1" directly. 1>&2
+  endlocal & exit /b 64
+)
+"@@POWERSHELL_EXE:win@@" -NoLogo -NoProfile -File "@@LAUNCHER_ROOT:win@@\Update-CodexPlusPlusInstaller.ps1" -Mode Update
+set "CODEXPP_EXIT=%ERRORLEVEL%"
+endlocal & exit /b %CODEXPP_EXIT%
+
+:managed_repair
+if not "%~2"=="" (
+  echo Advanced repair arguments must use "@@LAUNCHER_ROOT:win@@\Repair-CodexPlusPlusCurrentApp.ps1" directly. 1>&2
+  endlocal & exit /b 64
+)
+"@@POWERSHELL_EXE:win@@" -NoLogo -NoProfile -File "@@LAUNCHER_ROOT:win@@\Repair-CodexPlusPlusCurrentApp.ps1"
+set "CODEXPP_EXIT=%ERRORLEVEL%"
+endlocal & exit /b %CODEXPP_EXIT%

@@ -1,0 +1,8 @@
+{
+  "type": "commonjs",
+  "scripts": {
+    "test": "node tests/automation-meta.test.js",
+    "verify:contract": "node scripts/verify-auto-follow-up-contract.js",
+    "repair:contract": "node scripts/verify-auto-follow-up-contract.js --repair"
+  }
+}

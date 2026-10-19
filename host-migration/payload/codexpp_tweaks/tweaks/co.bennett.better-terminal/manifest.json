@@ -1,0 +1,22 @@
+{
+  "id": "co.bennett.better-terminal",
+  "name": "Better Terminal",
+  "version": "1.0.0",
+  "githubRepo": "b-nnett/codex-plusplus-better-terminal",
+  "description": "Upgrades Codex terminals with split panes, native popouts, tab controls, shortcuts, and a memory watchdog.",
+  "author": {
+    "name": "bennett",
+    "url": "https://github.com/b-nnett"
+  },
+  "homepage": "https://github.com/b-nnett/codex-plusplus-better-terminal",
+  "tags": [
+    "terminal",
+    "ui",
+    "productivity"
+  ],
+  "scope": "both",
+  "main": "index.js",
+  "permissions": [
+    "settings"
+  ]
+}

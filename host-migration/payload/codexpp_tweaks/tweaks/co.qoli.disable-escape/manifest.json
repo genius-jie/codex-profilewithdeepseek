@@ -1,0 +1,10 @@
+{
+  "id": "co.qoli.disable-escape",
+  "name": "Disable Escape",
+  "version": "0.1.0",
+  "githubRepo": "qoli/codex-disable-escape-tweak",
+  "author": "qoli",
+  "description": "Consumes Escape key events before Codex Desktop shortcuts can interrupt running responses.",
+  "scope": "renderer",
+  "main": "index.js"
+}

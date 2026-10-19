@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenCLI 完整采集"
+  short_description: "跨项目保持采集与分析覆盖，复用有效分析并验证无损增量与经验回流"
+  default_prompt: "使用 $opencli-complete-acquisition 保持任务能力、证据和分析覆盖，只消除已证实的重复工作，并按原始回执与回归结果沉淀经验。"

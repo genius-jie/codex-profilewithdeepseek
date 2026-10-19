@@ -1,0 +1,46 @@
+{
+  "selected_primary_source_ids": [
+    "brand_official_store_cn",
+    "jd_tmall_official_store"
+  ],
+  "cross_check_source_ids": [
+    "xiaohongshu_product_posts"
+  ],
+  "excluded_sources": [
+    {
+      "source_family": "secondhand_marketplace",
+      "reason": "二手和回收价反映残值、成色和议价，不代表 AirPods Pro 3 新品销售价格或 SKU 事实。",
+      "can_be_reintroduced_as": "market_signal_source",
+      "evidence": [
+        "BankMyCell/eBay/Goofish evidence all focuses on used resale value, condition and secondhand asking price.",
+        "二手平台可以帮助判断残值，但不能替代 Apple 官方购买页或电商交易面的新品事实。"
+      ]
+    },
+    {
+      "source_family": "generic_web",
+      "reason": "通用网页和媒体导购可以发现促销线索，但不直接承载官方 SKU、实时库存或交易面评价数。",
+      "can_be_reintroduced_as": "discovery_source",
+      "evidence": [
+        "Tech/deal articles may quote discounts, but source-of-record fields still need Apple or marketplace pages.",
+        "通用搜索更适合发现入口，不适合作为主事实源。"
+      ]
+    }
+  ],
+  "decision_trace": [
+    "Agent 先把需求判为商品销售分析，事实字段是价格、SKU、促销、评价规模和销售信号。",
+    "Apple 官方购买页是官方标价和官方购买条件的事实源，权威性高于媒体导购和社交讨论。",
+    "Best Buy/Amazon/JD/Tmall 交易面覆盖实时销售价、评价数、SKU 或卖家身份，是销售分析的第二主源。",
+    "小红书/YouTube/Reddit 只保留为口碑和体验交叉验证；BankMyCell/eBay/Goofish 二手证据被排除出新品销售主链。"
+  ],
+  "confidence": "high",
+  "entity_type": "product",
+  "region_scope": "global",
+  "fact_dimensions": [
+    "price",
+    "sku",
+    "promotion",
+    "review_count",
+    "sales_signal"
+  ],
+  "basis": "Agent compared official buying page, marketplace listings, social discussions and secondhand surfaces, then separated sales facts from reputation and residual-value signals."
+}

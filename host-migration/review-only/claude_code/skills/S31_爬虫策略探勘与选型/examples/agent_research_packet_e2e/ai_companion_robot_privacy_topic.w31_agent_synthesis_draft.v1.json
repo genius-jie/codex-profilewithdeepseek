@@ -1,0 +1,232 @@
+{
+  "schema_version": "w31_agent_synthesis_draft.v1",
+  "review_status": "draft_needs_agent_review",
+  "agent_review_required": true,
+  "source_selection_owner": "agent_synthesis_draft",
+  "packet_schema_version": "w31_agent_research_packet.v1",
+  "source_decision_ref": "ai_companion_robot_privacy_topic.data_source_decision_receipt.v1.json",
+  "business_goal": "针对 AI 陪伴机器人隐私争议做舆情 热度 负面讨论分析",
+  "scenario": "social_topic_opinion",
+  "entity_type": "topic",
+  "region_scope": "cn",
+  "fact_dimensions": [
+    "mention_volume",
+    "sentiment_sample",
+    "negative_feedback",
+    "engagement",
+    "time_window"
+  ],
+  "decision_basis": [
+    "business_fact_authority",
+    "field_coverage",
+    "freshness",
+    "repeatability",
+    "crawl_friction"
+  ],
+  "candidate_summary": [
+    {
+      "source_id": "xiaohongshu_topic_search",
+      "platform": "xiaohongshu",
+      "source_family": "social_content",
+      "role": "sentiment_source",
+      "priority_rank": 1,
+      "draft_decision": "primary",
+      "score": {
+        "fact_authority": 5,
+        "field_coverage": 5,
+        "freshness": 5,
+        "repeatability": 3,
+        "crawl_friction": 3,
+        "total": 21
+      },
+      "score_total": 21,
+      "authority_basis": "话题口碑和种草内容发生在社交内容平台。",
+      "target_fields": [
+        "note_title",
+        "note_text",
+        "likes",
+        "comments",
+        "publish_time"
+      ],
+      "expected_collection_mode": "content_mining_analysis_summary",
+      "evidence_count": 1,
+      "observed_url_count": 1,
+      "evidence_preview": [
+        "search:AI 陪伴机器人隐私争议 热度 负面讨论 小红书 体验 负面 -> 小红书 AI 陪伴机器人 隐私 负面讨论搜索 (https://www.xiaohongshu.com/search_result?keyword=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81) :: Xiaohongshu search can surface user posts about AI companion robots, privacy worries, children use and negative feedback. | browser_probe:ok title=小红书 AI 陪伴机器人 隐私 搜索"
+      ],
+      "observed_urls": [
+        "https://www.xiaohongshu.com/search_result?keyword=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "xiaohongshu",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。",
+        "平台源尚未获得 OpenCLI/platform adapter 状态；必要时补跑平台原生搜索再定稿。"
+      ],
+      "review_note": "核对它是否真实承载用户表达、热度、负面反馈或海外口碑样本；它在此场景下是主事实源候选，不要机械降级。"
+    },
+    {
+      "source_id": "weibo_topic_search",
+      "platform": "weibo",
+      "source_family": "social_content",
+      "role": "sentiment_source",
+      "priority_rank": 2,
+      "draft_decision": "primary",
+      "score": {
+        "fact_authority": 4,
+        "field_coverage": 4,
+        "freshness": 5,
+        "repeatability": 3,
+        "crawl_friction": 3,
+        "total": 19
+      },
+      "score_total": 19,
+      "authority_basis": "微博适合捕捉公开话题扩散和实时反馈。",
+      "target_fields": [
+        "post_text",
+        "repost_count",
+        "comment_count",
+        "publish_time"
+      ],
+      "expected_collection_mode": "content_mining_analysis_summary",
+      "evidence_count": 1,
+      "observed_url_count": 1,
+      "evidence_preview": [
+        "search:AI 陪伴机器人隐私争议 热度 负面讨论 微博 讨论 最新 -> 微博 AI 陪伴机器人 隐私争议讨论搜索 (https://s.weibo.com/weibo?q=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81) :: Weibo search can capture public spread, reposts, comments and recency for AI companion privacy controversy. | browser_probe:ok title=微博 AI 陪伴机器人 隐私 搜索"
+      ],
+      "observed_urls": [
+        "https://s.weibo.com/weibo?q=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "weibo",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。",
+        "平台源尚未获得 OpenCLI/platform adapter 状态；必要时补跑平台原生搜索再定稿。"
+      ],
+      "review_note": "核对它是否真实承载用户表达、热度、负面反馈或海外口碑样本；它在此场景下是主事实源候选，不要机械降级。"
+    },
+    {
+      "source_id": "baidu_google_news_search",
+      "platform": "search/news",
+      "source_family": "search_news",
+      "role": "cross_check_source",
+      "priority_rank": 3,
+      "draft_decision": "cross_check",
+      "score": {
+        "fact_authority": 3,
+        "field_coverage": 3,
+        "freshness": 4,
+        "repeatability": 4,
+        "crawl_friction": 4,
+        "total": 18
+      },
+      "score_total": 18,
+      "authority_basis": "搜索和新闻用于补全公开事件和跨平台覆盖面。",
+      "target_fields": [
+        "title",
+        "url",
+        "published_at",
+        "source_name"
+      ],
+      "expected_collection_mode": "query_search_data_collection",
+      "evidence_count": 5,
+      "observed_url_count": 5,
+      "evidence_preview": [
+        "search:AI 陪伴机器人隐私争议 热度 负面讨论 小红书 体验 负面 -> 小红书 AI 陪伴机器人 隐私 负面讨论搜索 (https://www.xiaohongshu.com/search_result?keyword=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81) :: Xiaohongshu search can surface user posts about AI companion robots, privacy worries, children use and negative feedback. | browser_probe:ok title=小红书 AI 陪伴机器人 隐私 搜索",
+        "search:AI 陪伴机器人隐私争议 热度 负面讨论 微博 讨论 最新 -> 微博 AI 陪伴机器人 隐私争议讨论搜索 (https://s.weibo.com/weibo?q=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81) :: Weibo search can capture public spread, reposts, comments and recency for AI companion privacy controversy. | browser_probe:ok title=微博 AI 陪伴机器人 隐私 搜索"
+      ],
+      "observed_urls": [
+        "https://www.xiaohongshu.com/search_result?keyword=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81",
+        "https://s.weibo.com/weibo?q=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81",
+        "https://www.ftc.gov/news-events/news/press-releases/2025/09/ftc-launches-inquiry-ai-chatbots-acting-companions"
+      ],
+      "platform_adapter_status": {
+        "attempted": false,
+        "status": "not_attempted",
+        "provider": "",
+        "platform_key": "",
+        "result_count": 0
+      },
+      "score_review_hints": [
+        "评分顺序固定：业务事实权威性 > 字段覆盖度 > 时效性 > 可复现性 > 抓取摩擦。"
+      ],
+      "review_note": "核对它是否只用于验证主源口径、异常或趋势信号，不被升级成主事实源。"
+    }
+  ],
+  "proposed_primary_source_ids": [
+    "xiaohongshu_topic_search",
+    "weibo_topic_search"
+  ],
+  "proposed_cross_check_source_ids": [
+    "baidu_google_news_search"
+  ],
+  "proposed_excluded_sources": [
+    {
+      "source_id": "observed_commerce_marketplace",
+      "source_family": "commerce_marketplace",
+      "role": "observed_non_primary_family",
+      "reason_draft": "电商交易面代表价格、商品评价和供应状态，不代表公共讨论、热度扩散或负面舆情事实。",
+      "can_be_reintroduced_as": "market_signal_source",
+      "evidence": [
+        "search:AI 陪伴机器人隐私争议 热度 负面讨论 电商 价格 -> Amazon search: AI companion robot for kids (https://www.amazon.com/s?k=AI+companion+robot+for+kids) :: Commerce search can reveal product availability and price, but not public opinion or privacy controversy facts."
+      ]
+    },
+    {
+      "source_id": "observed_official_source",
+      "source_family": "official_source",
+      "role": "observed_non_primary_family",
+      "reason_draft": "官方页面和品牌声明代表企业口径，可做背景交叉，但不能代表用户自发表达和争议热度。",
+      "can_be_reintroduced_as": "policy_cross_check_source",
+      "evidence": [
+        "search:AI 陪伴机器人隐私争议 热度 负面讨论 电商 价格 -> Miko AI-Powered Robot official page (https://miko.ai/) :: Miko official page claims child safety and privacy positioning, useful only as official cross-check. | browser_probe:ok title=Miko AI-Powered Robot"
+      ]
+    }
+  ],
+  "decision_trace_draft": [
+    "需求先被归入 social_topic_opinion，本轮草案只围绕 mention_volume, sentiment_sample, negative_feedback, engagement, time_window 做主源裁决审阅。",
+    "评分审阅顺序固定为 business_fact_authority > field_coverage > freshness > repeatability > crawl_friction；抓取摩擦只能影响执行路线，不能把低权威源抬成主事实源。",
+    "候选主事实源草案为 xiaohongshu_topic_search, weibo_topic_search，需要 Agent 逐条打开 evidence 核对权威性和字段覆盖。",
+    "候选交叉验证源草案为 baidu_google_news_search，只用于验证主源口径、异常和趋势信号。",
+    "候选排除源族谱为 commerce_marketplace, official_source，必须保留反证理由，不能只写“不适合”。"
+  ],
+  "review_checklist": [
+    "先确认业务目标、实体、地域、时间窗和 fact_dimensions 是否与用户需求一致。",
+    "按业务事实权威性、字段覆盖度、时效性、可复现性、抓取摩擦的固定顺序复核每个候选源。",
+    "查看 OpenCLI/platform adapter 状态；它只能帮助判断时效性、可复现性和抓取摩擦，不能替代业务事实权威性。",
+    "逐条打开主源 evidence，确认它确实承载目标字段，而不是只因为好抓或热门。",
+    "确认交叉验证源不会被误升为主事实源，排除源必须有反证或边界理由。",
+    "审阅完成后只填写 final_synthesis_template；draft 本身不得传给 --synthesis-json 编译正式 receipt。"
+  ],
+  "final_synthesis_template": {
+    "schema_version": "w31_agent_synthesis.v1",
+    "review_status": "final",
+    "source_selection_owner": "agent_synthesis",
+    "business_goal": "针对 AI 陪伴机器人隐私争议做舆情 热度 负面讨论分析",
+    "entity_type": "topic",
+    "region_scope": "cn",
+    "fact_dimensions": [
+      "mention_volume",
+      "sentiment_sample",
+      "negative_feedback",
+      "engagement",
+      "time_window"
+    ],
+    "selected_primary_source_ids": [],
+    "cross_check_source_ids": [],
+    "excluded_sources": [],
+    "decision_trace": [],
+    "confidence": "low",
+    "basis": "Agent reviewed the W31 research packet evidence and finalized primary, cross-check and excluded sources."
+  },
+  "blocking_note": "This artifact is a reviewable draft only. Convert the nested final_synthesis_template into a completed final synthesis before compiling data_source_decision_receipt.v1."
+}

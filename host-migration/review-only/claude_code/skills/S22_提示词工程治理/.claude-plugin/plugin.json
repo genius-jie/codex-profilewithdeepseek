@@ -1,0 +1,12 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "S22_提示词工程治理",
+  "version": "1.0.0",
+  "description": "Custom skill: S22_提示词工程治理",
+  "author": {
+    "name": "Antigravity"
+  },
+  "skills": [
+    "./"
+  ]
+}

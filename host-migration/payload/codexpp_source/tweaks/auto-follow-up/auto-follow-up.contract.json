@@ -1,0 +1,20 @@
+{
+  "contract_id": "auto-follow-up.p0-p1-autosubmit.v2",
+  "tweak_id": "com.lobster.auto-follow-up",
+  "source_path": "@@CODEX_HOME:escaped@@-plusplus\\source\\tweaks\\auto-follow-up",
+  "installed_path": "@@USERPROFILE:escaped@@\\AppData\\Roaming\\codex-plusplus\\tweaks\\com.lobster.auto-follow-up",
+  "codex_plusplus_config_path": "@@USERPROFILE:escaped@@\\AppData\\Roaming\\codex-plusplus\\config.json",
+  "codex_plusplus_state_path": "@@USERPROFILE:escaped@@\\AppData\\Roaming\\codex-plusplus\\state.json",
+  "self_update_state_path": "@@USERPROFILE:escaped@@\\AppData\\Roaming\\codex-plusplus\\self-update-state.json",
+  "required_enabled": true,
+  "required_install_realpath": "source_path",
+  "required_payload_flag": "codex_follow_up_candidate",
+  "renderer_dataset_key": "followupMeta",
+  "required_task_complete": true,
+  "auto_submit_priorities": ["P0", "P1"],
+  "priority_order": ["P0", "P1", "P2", "P3"],
+  "display_only_priorities": ["P2", "P3"],
+  "fallback_auto_submit": false,
+  "selection_rule": "Queue every P0 and P1 candidate as a separate prompt, with P0 before P1 and original order preserved within each priority. Never auto-submit P2/P3 or unstructured panel buttons.",
+  "stop_guard_boundary": "Stop Guard closes the current task before Follow-up candidates are considered. Follow-up JSON must not be treated as current-task debt."
+}

@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "evidenceType": "s12-failure-review",
+  "rerun_exit_code": 0,
+  "s12": "pass",
+  "command_fingerprint": "python -c \" import yaml, json d=yaml.safe_load(open('@@GENERAL_ROOT:forward@@/control/registry/asset-status.yaml',encoding='utf-8')) assets=d.get('assets',{}) print('assets ke",
+  "root_cause": "assets in asset-status.yaml are a YAML list; dict .get failed; corrected list walk returned 103 entries incl active S51/W39",
+  "corrected_command_note": "corrected parser read registry and printed S51/W39 active entries; exit 0",
+  "recorded_at": "2026-10-14"
+}

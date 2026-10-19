@@ -1,0 +1,57 @@
+{
+  "queries": {
+    "AI 陪伴机器人隐私争议 热度 负面讨论 小红书 体验 负面": [
+      {
+        "title": "小红书 AI 陪伴机器人 隐私 负面讨论搜索",
+        "url": "https://www.xiaohongshu.com/search_result?keyword=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81",
+        "snippet": "Xiaohongshu search can surface user posts about AI companion robots, privacy worries, children use and negative feedback."
+      },
+      {
+        "title": "Reddit: Miko 3 privacy concerns",
+        "url": "https://www.reddit.com/r/ArtificialInteligence/comments/r3pdbn/has_anyone_purchased_a_miko_3_yet_if_so_why_are/",
+        "snippet": "A user asks about privacy concerns around an AI robot for kids, camera access and feature visibility."
+      }
+    ],
+    "AI 陪伴机器人隐私争议 热度 负面讨论 微博 讨论 最新": [
+      {
+        "title": "微博 AI 陪伴机器人 隐私争议讨论搜索",
+        "url": "https://s.weibo.com/weibo?q=AI%E9%99%AA%E4%BC%B4%E6%9C%BA%E5%99%A8%E4%BA%BA%20%E9%9A%90%E7%A7%81",
+        "snippet": "Weibo search can capture public spread, reposts, comments and recency for AI companion privacy controversy."
+      },
+      {
+        "title": "X / FTC: AI chatbots acting as companions inquiry discussion",
+        "url": "https://x.com/FTC/status/1966159135742833131",
+        "snippet": "FTC social post announces inquiry into AI chatbots acting as companions, giving a social diffusion marker."
+      }
+    ],
+    "AI 陪伴机器人隐私争议 热度 负面讨论 新闻 舆情": [
+      {
+        "title": "FTC Launches Inquiry into AI Chatbots Acting as Companions",
+        "url": "https://www.ftc.gov/news-events/news/press-releases/2025/09/ftc-launches-inquiry-ai-chatbots-acting-companions",
+        "snippet": "FTC inquiry asks what steps companies have taken to evaluate safety, limit use by children and teens, and disclose risks."
+      },
+      {
+        "title": "Study exposes privacy risks of AI chatbot conversations - Stanford News",
+        "url": "https://news.stanford.edu/stories/2025/10/ai-chatbot-privacy-concerns-risks-research",
+        "snippet": "Stanford researchers identify privacy concerns such as retention, training on data and transparency gaps in AI chat systems."
+      },
+      {
+        "title": "AI companions - European Data Protection Supervisor",
+        "url": "https://www.edps.europa.eu/data-protection/technology-monitoring/techsonar/ai-companions",
+        "snippet": "EDPS describes AI companions as continuously processing personal data, including sensitive text and voice/video data."
+      }
+    ],
+    "AI 陪伴机器人隐私争议 热度 负面讨论 电商 价格": [
+      {
+        "title": "Miko AI-Powered Robot official page",
+        "url": "https://miko.ai/",
+        "snippet": "Miko official page claims child safety and privacy positioning, useful only as official cross-check."
+      },
+      {
+        "title": "Amazon search: AI companion robot for kids",
+        "url": "https://www.amazon.com/s?k=AI+companion+robot+for+kids",
+        "snippet": "Commerce search can reveal product availability and price, but not public opinion or privacy controversy facts."
+      }
+    ]
+  }
+}

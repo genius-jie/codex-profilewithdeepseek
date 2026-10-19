@@ -215,7 +215,24 @@
     ]
   },
   "github_download": {
-    "status": "pending_after_publication"
+    "status": "passed",
+    "profile_commit": "1054e4cc6ce0cc855406dcccfb61b0d0c3b81b64",
+    "general_commit": "449eee774e717e5813b96fa366f19efadcf567d3",
+    "fresh_github_clones": true,
+    "package_verify": {
+      "verified_entries": 849,
+      "hosts": [
+        "codex",
+        "codex_plus_plus",
+        "claude_code"
+      ]
+    },
+    "unittest_passed": 28,
+    "unittest_failed": 0,
+    "duration_seconds": 23.125,
+    "code_and_payload_checksums_sha256": "c2b93c086efcc062aab8a107a9791678e88ac7ff9b73b4b802e1f8037e960b62",
+    "profile_clone_clean": true,
+    "general_clone_clean": true
   },
   "limits": [
     "A different physical computer is not available in this session; target application installation, account access, desktop environment inheritance and provider credentials require target-machine acceptance.",
@@ -224,5 +241,18 @@
     "Only the representative model IDs in the recorded source results were runtime-tested; other documented model IDs require their own target checks.",
     "Historical source snapshots and current app-generated configuration can differ; the ordinary Codex source config was read only and its classified snapshot drift was retained.",
     "Credentials and provider/account databases are private local inputs and are excluded from Git."
-  ]
+  ],
+  "git_hygiene": {
+    "published_change_files": 15,
+    "binary_or_private_database_changes": [],
+    "large_text_manifest": {
+      "previous_bytes": 893278,
+      "current_bytes": 893735,
+      "added_bytes": 457,
+      "existing_entries": 849,
+      "changed_adapter_entries": 3
+    },
+    "S12_W9_resolution": "size audit initially treated the pre-existing generated text manifest as an unapproved new large asset; verified that it is the required index within the user-authorized migration package and only three adapter records changed; no binary or private database was added",
+    "rerun": "passed"
+  }
 }

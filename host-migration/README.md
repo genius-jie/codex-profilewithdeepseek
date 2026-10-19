@@ -18,6 +18,8 @@ related:
 
 **需要在新机选择 DeepSeek、千问、Kimi、GLM 时，继续执行 [第三方模型完整接入指南](model-setup/README.md)。** 它覆盖原生管理软件中的账号/路由录入、精确模型 ID、正确服务入口、Claude API 格式、模型切换和真实工具结果回传验收；文件恢复完成后还必须完成这条链路。
 
+**Codex++ 的自动提交建议插件按 [Follow-up 插件换机指南](tweak-setup/README.md) 恢复。** Auto Follow-up 与 Codex Follow-up 已一起入包；指南补充隔离安装、界面偏好和自定义提示词的私密迁移、会话状态重新开始，以及既有校验入口和实际界面验收。
+
 ## 新电脑统一入口
 
 取得本仓与 General 仓库、安装 Python 3.11+ 和 PowerShell 7 后，可直接使用统一入口。它自动取得新机用户目录和可用解释器，只需明确 General 源与隔离 Profile 的位置；默认先预览：
@@ -44,6 +46,7 @@ pwsh -NoProfile -File .\host-migration\new-computer.ps1 -GeneralRoot D:\AgentAss
 | Codex++ 现有启动链、修复及隔离检查 | `payload/launcher`；只复制，恢复工具不执行维护、进程清理、提权或升级 |
 | 模型协议适配服务 | `payload/adapter` 保存源码及现有注册入口；不搬原机服务注册或账号数据库 |
 | Codex++ 本地安装源码、tweak 源码和可分发资源 | `payload/codexpp_source` 与 `payload/codexpp_tweaks`，保留源码中的许可文件；依赖、产物和原生工具在新机安装生成 |
+| 自动提交建议的两个配套插件 | 源码、启用登记及原有测试随 support 组件保存；renderer 偏好用 `tweak-setup/portable-preferences.js` 选择性私密传输，不搬旧会话计数与缓存 |
 | 额外模型基础指令替换文件 | 原文保留在 `review-only`，不恢复 `model_instructions_file` 绑定；它是替换内置指令的第三方输入，须独立审查后再决定是否采用 |
 | 登录凭据、Token、Cookie、Provider 密钥 | 不入包；重新登录或使用私密渠道配置，字段名示例见 `private-transfer.example.env` |
 | General 技能在宿主里的业务连接器配置副本 | 配置目录整体留给私密迁移，机器人 Webhook 视同凭据；不因放在 `review-only` 就允许公开 |

@@ -13,6 +13,7 @@ import re
 import subprocess
 import tomllib
 from model_portability import transform_adapter
+from tweak_portability import transform_tweak
 
 from common import (HOSTS, PRIVATE_NAME, SKIP_DIRS, TEXT_SUFFIXES, is_reparse, safe_relative,
                     json_bytes, load_json, scan_secrets, secret_values, sha256,
@@ -87,6 +88,8 @@ def export(sources: dict, package: Path):
             changes = list(changes or [])
             text, adapter_changes = transform_adapter(label, text, bindings["POWERSHELL_EXE"])
             changes.extend(adapter_changes)
+            text, tweak_changes = transform_tweak(label, text)
+            changes.extend(tweak_changes)
             if label == "codex/AGENTS.md":
                 retired = str(Path(bindings["USERPROFILE"]) / "AppData/Roaming/CodexPlusPlusProfile/.codex")
                 if retired in text:

@@ -6863,15 +6863,17 @@
       "source": "codexpp_source/tweaks/auto-follow-up/auto-follow-up.contract.json",
       "source_sha256": "a61488c518fc6851b84f32ceee233e6dda9b4889da19acba22d8777ce6e283f2",
       "path": "payload/codexpp_source/tweaks/auto-follow-up/auto-follow-up.contract.json",
-      "sha256": "d19210d45057aed26c23a80b31a6e2345d48533ccba18bca8133f929deaf31d2",
-      "bytes": 1361,
+      "sha256": "52ec313e4238f9e1859ac2d60971d17fdbb76e65e782a5573d746100ac3ecbd7",
+      "bytes": 1344,
       "component": "codexpp_source",
       "host": null,
       "installable": true,
       "target_root": "CODEXPP_SOURCE",
       "target_path": "tweaks/auto-follow-up/auto-follow-up.contract.json",
       "template": true,
-      "changes": []
+      "changes": [
+        "bind Auto Follow-up verification to the selected isolated source/runtime and identical packaged copies"
+      ]
     },
     {
       "source": "codexpp_source/tweaks/auto-follow-up/automation.js",
@@ -6933,15 +6935,17 @@
       "source": "codexpp_source/tweaks/auto-follow-up/scripts/verify-auto-follow-up-contract.js",
       "source_sha256": "fb77351d3864fd68ba6844dfb3f065366826c01bd64710712019bf767fc1c34d",
       "path": "payload/codexpp_source/tweaks/auto-follow-up/scripts/verify-auto-follow-up-contract.js",
-      "sha256": "fb77351d3864fd68ba6844dfb3f065366826c01bd64710712019bf767fc1c34d",
-      "bytes": 7502,
+      "sha256": "be9181b33fde011a9f37d980531674aa6f9bbb8edaca9b3a0683be2d48441cdc",
+      "bytes": 9039,
       "component": "codexpp_source",
       "host": null,
       "installable": true,
       "target_root": "CODEXPP_SOURCE",
       "target_path": "tweaks/auto-follow-up/scripts/verify-auto-follow-up-contract.js",
       "template": true,
-      "changes": []
+      "changes": [
+        "verify identical installed snapshots through the existing entry; keep target install state local and block developer-link repair on migration copies"
+      ]
     },
     {
       "source": "codexpp_source/tweaks/auto-follow-up/tests/automation-meta.test.js",
@@ -10125,15 +10129,17 @@
       "source": "codexpp_tweaks/com.lobster.auto-follow-up/auto-follow-up.contract.json",
       "source_sha256": "a61488c518fc6851b84f32ceee233e6dda9b4889da19acba22d8777ce6e283f2",
       "path": "payload/codexpp_tweaks/tweaks/com.lobster.auto-follow-up/auto-follow-up.contract.json",
-      "sha256": "d19210d45057aed26c23a80b31a6e2345d48533ccba18bca8133f929deaf31d2",
-      "bytes": 1361,
+      "sha256": "52ec313e4238f9e1859ac2d60971d17fdbb76e65e782a5573d746100ac3ecbd7",
+      "bytes": 1344,
       "component": "codexpp_tweaks",
       "host": null,
       "installable": true,
       "target_root": "CODEXPP_RUNTIME",
       "target_path": "tweaks/com.lobster.auto-follow-up/auto-follow-up.contract.json",
       "template": true,
-      "changes": []
+      "changes": [
+        "bind Auto Follow-up verification to the selected isolated source/runtime and identical packaged copies"
+      ]
     },
     {
       "source": "codexpp_tweaks/com.lobster.auto-follow-up/automation.js",
@@ -10195,15 +10201,17 @@
       "source": "codexpp_tweaks/com.lobster.auto-follow-up/scripts/verify-auto-follow-up-contract.js",
       "source_sha256": "fb77351d3864fd68ba6844dfb3f065366826c01bd64710712019bf767fc1c34d",
       "path": "payload/codexpp_tweaks/tweaks/com.lobster.auto-follow-up/scripts/verify-auto-follow-up-contract.js",
-      "sha256": "fb77351d3864fd68ba6844dfb3f065366826c01bd64710712019bf767fc1c34d",
-      "bytes": 7502,
+      "sha256": "be9181b33fde011a9f37d980531674aa6f9bbb8edaca9b3a0683be2d48441cdc",
+      "bytes": 9039,
       "component": "codexpp_tweaks",
       "host": null,
       "installable": true,
       "target_root": "CODEXPP_RUNTIME",
       "target_path": "tweaks/com.lobster.auto-follow-up/scripts/verify-auto-follow-up-contract.js",
       "template": true,
-      "changes": []
+      "changes": [
+        "verify identical installed snapshots through the existing entry; keep target install state local and block developer-link repair on migration copies"
+      ]
     },
     {
       "source": "codexpp_tweaks/com.lobster.auto-follow-up/tests/automation-meta.test.js",

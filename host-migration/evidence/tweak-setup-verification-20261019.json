@@ -1,0 +1,73 @@
+{
+  "schema_version": "host-tweak-migration-verification.v1",
+  "client_date": "2026-10-19",
+  "scope": "existing Codex++ Auto Follow-up and Codex Follow-up migration package; no live plugin mutation",
+  "plugins": {
+    "com.lobster.auto-follow-up": "1.0.0",
+    "co.Arconte112.followup": "0.3.0"
+  },
+  "package": {
+    "manifest_entries": 849,
+    "sealed_files": 872,
+    "checksums_sha256": "a82b950b9b3817d0bcf55f5f188612e9668654b8e3a8c4ec3cf4791f1f6b3e7e",
+    "portable_preference_helper_sha256": "aed6d83247fd8ece7f6536d66e40d85082e64aad8455f6856a388b9ef28acdd9",
+    "general_commit": "449eee774e717e5813b96fa366f19efadcf567d3"
+  },
+  "regression": {
+    "before": "isolated restore reproduces source_path mismatch: the historical plugin contract assumes the old user default root and a developer Junction",
+    "after": "bind source/runtime to the chosen migration layout; use the existing validator to compare all eight Auto Follow-up files; native install/update state stays target-local",
+    "exporter_reproduces_all_four_changed_contract_files": true,
+    "active_source_contract_or_runtime_changed": false
+  },
+  "verification": {
+    "command": "python -m unittest discover -s host-migration/tools -p test_*.py -v",
+    "passed": 30,
+    "failed": 0,
+    "duration_seconds": 62.579,
+    "restored_native_plugin_tests": [
+      "automation-meta.test.js",
+      "index-ui-init.test.js",
+      "real-final-sidecar.test.js"
+    ],
+    "positive_paths": [
+      "new temporary Windows user and separate Codex++ profile with spaces and Chinese characters",
+      "native validation from both the source directory and its identical physical installed copy",
+      "target installer state absent without copying or fabricating old state",
+      "native renderer storage key export/import and legacy editable-prompt migration",
+      "export has no writes; successful import preserves target session state and other plugin keys"
+    ],
+    "negative_paths": [
+      "changed installed source copy is rejected",
+      "disabled Auto Follow-up is rejected",
+      "disabled Codex Follow-up companion is rejected",
+      "developer-link --repair on packaged copies is rejected without writes",
+      "old session fields, unknown plugin/field and invalid preference types are rejected before writes",
+      "partial localStorage write failure restores previous values"
+    ],
+    "document_passport": "valid",
+    "javascript_syntax": "passed",
+    "original_plugin_files_hash_compared": 22,
+    "original_plugin_files_changed": 0,
+    "actual_source_renderer_preferences_exported_by_agent": false,
+    "whole_proposed_git_tree_scan": {
+      "files": 1014,
+      "known_credential_values_compared": 20,
+      "findings": 0
+    }
+  },
+  "github_download": {
+    "status": "pending_after_publication"
+  },
+  "limits": [
+    "Native Electron desktop pages and actual automatic continuation were not exercised on a different physical computer.",
+    "Preference transport is opt-in through the existing renderer localStorage protocol; tests use an in-memory storage fixture and a browser-like VM context. Actual source settings are private and were not read or committed by this agent.",
+    "When developer tools are unavailable, the guide provides the existing native settings-page migration path.",
+    "New sessions begin with new counters and per-session switches; old queues, caches, candidates, sessions and credentials are excluded.",
+    "This request changes the migration package only; the source machine historical native contract remains unchanged."
+  ],
+  "review": {
+    "mode": "producer review and executable positive/negative tests",
+    "independent_review_verdict": "not_claimed",
+    "additional_service_watcher_or_runtime_state_store_created": false
+  }
+}

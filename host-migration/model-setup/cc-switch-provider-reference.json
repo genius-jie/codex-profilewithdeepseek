@@ -1,0 +1,12 @@
+{
+  "schema_version": "cc-switch-provider-reference.v1",
+  "purpose": "Reference for the native CC Switch provider editor. This is not a database or an automatic import format.",
+  "private_values": "Enter endpoint and key locally. Never enable literal FILL_LOCALLY values.",
+  "providers": [
+    {"name": "DeepSeek", "apiFormat": "openai_chat", "base_url": "FILL_LOCALLY_DEEPSEEK_OPENAI_BASE_URL", "credential_env_for_private_transfer": "DEEPSEEK_UPSTREAM_API_KEY", "model": "deepseek-v4-pro", "client_after_takeover": "http://127.0.0.1:15733"},
+    {"name": "Qwen", "apiFormat": "openai_chat", "base_url": "http://127.0.0.1:15727", "upstream_owner": "CcSwitchSanitizerSupervisor", "upstream_configuration": "CC_SWITCH_QWEN_UPSTREAM; source-machine default https://api.a2agent.me", "credential_env_for_private_transfer": "QWEN_UPSTREAM_API_KEY", "model": "qwen3.8-max", "client_after_takeover": "http://127.0.0.1:15733"},
+    {"name": "Kimi", "apiFormat": "openai_chat", "base_url": "FILL_LOCALLY_KIMI_OPENAI_BASE_URL", "credential_env_for_private_transfer": "KIMI_UPSTREAM_API_KEY", "model": "kimi-k2.7-code", "client_after_takeover": "http://127.0.0.1:15733"},
+    {"name": "GLM Flash", "apiFormat": "anthropic", "base_url": "FILL_LOCALLY_GLM_ANTHROPIC_BASE_URL", "credential_env_for_private_transfer": "GLM_UPSTREAM_API_KEY", "model": "glm-5.3-flash", "client_after_takeover": "http://127.0.0.1:15733"},
+    {"name": "GLM 5.2 via existing adapter", "apiFormat": "openai_chat", "base_url": "http://127.0.0.1:15726", "upstream_owner": "CcSwitchSanitizerSupervisor", "upstream_configuration": "CC_SWITCH_GLM_UPSTREAM; source-machine default https://api.a2agent.me", "credential_env_for_private_transfer": "GLM_UPSTREAM_API_KEY", "model": "glm-5.2", "client_after_takeover": "http://127.0.0.1:15733"}
+  ]
+}

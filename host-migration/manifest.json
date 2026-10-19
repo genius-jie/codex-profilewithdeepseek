@@ -489,15 +489,18 @@
       "source": "adapter/install-cc-switch-sanitizer-supervisor-service.ps1",
       "source_sha256": "dc9d1813a11ee8cd5490ca069ab7a6cc2be0597f820f4faa959afb9a26498588",
       "path": "payload/adapter/install-cc-switch-sanitizer-supervisor-service.ps1",
-      "sha256": "372d311c1fb99323fb4441a7df6f84c3aa884f75f8f95e532f1a8a2cb7697705",
-      "bytes": 2191,
+      "sha256": "87dab08593fdb5522cce2b24d49ae86724fd6da8fe64585a075db278a65a039d",
+      "bytes": 2324,
       "component": "adapter",
       "host": null,
       "installable": true,
       "target_root": "SANITIZER_ROOT",
       "target_path": "install-cc-switch-sanitizer-supervisor-service.ps1",
       "template": true,
-      "changes": []
+      "changes": [
+        "use the selected absolute PowerShell 7 executable for the canonical supervisor",
+        "resolve NSSM from the target machine PATH before the existing System32 fallback"
+      ]
     },
     {
       "source": "adapter/install-claude-code-qwen-model-shim-service.ps1",
@@ -517,15 +520,17 @@
       "source": "adapter/install-codex-id-sanitizer-nssm.ps1",
       "source_sha256": "f35259637e3841467787effdb101ab7b19ac43844e01fd02d2ebd971ba4501fc",
       "path": "payload/adapter/install-codex-id-sanitizer-nssm.ps1",
-      "sha256": "b82d99cd8250ef9afbb54ce1878fcd208dfbc2b62ed1e2a4600bc81e2547d272",
-      "bytes": 2533,
+      "sha256": "373620e6e2a29063289e400f1d434e401926983e6dc3ef2b4cedd80f9c161207",
+      "bytes": 2523,
       "component": "adapter",
       "host": null,
       "installable": true,
       "target_root": "SANITIZER_ROOT",
       "target_path": "install-codex-id-sanitizer-nssm.ps1",
       "template": true,
-      "changes": []
+      "changes": [
+        "use the selected absolute PowerShell 7 executable in the service"
+      ]
     },
     {
       "source": "adapter/install-read-tool-sanitizer-autostart.ps1",
@@ -601,15 +606,18 @@
       "source": "adapter/start-cc-switch-sanitizer-supervisor.ps1",
       "source_sha256": "d8a5a1a6ecf01d581ed37ab0ffffc3ff16101dc9e4f6b346de7461eb3f1cc6fc",
       "path": "payload/adapter/start-cc-switch-sanitizer-supervisor.ps1",
-      "sha256": "0e2462eef69f505db4220d0bc725821182c6deb4b0cddc0ba548e04ec3369ead",
-      "bytes": 7564,
+      "sha256": "d15cd542927d5b0b7fd90735c515e72c1ada423f9170326743ebded49bce662b",
+      "bytes": 7789,
       "component": "adapter",
       "host": null,
       "installable": true,
       "target_root": "SANITIZER_ROOT",
       "target_path": "start-cc-switch-sanitizer-supervisor.ps1",
       "template": true,
-      "changes": []
+      "changes": [
+        "do not reuse the original machine provider ID; settings repair is opt-in",
+        "allow explicit Qwen/GLM upstream selection while preserving the observed default route"
+      ]
     },
     {
       "source": "adapter/start-claude-code-qwen-model-shim.ps1",

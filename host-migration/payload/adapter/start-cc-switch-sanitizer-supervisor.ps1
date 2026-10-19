@@ -50,7 +50,9 @@ $readProxy = Join-Path $root 'read-tool-sanitizer-proxy.js'
 $deepseekProxy = Join-Path $root 'deepseek-thinking-filter-proxy.js'
 $ccSwitchSettingsPath = Join-Path $env:USERPROFILE '.cc-switch\settings.json'
 $claudeSettingsPath = Join-Path $env:USERPROFILE '.claude\settings.json'
-$deepseekProviderId = 'aaa07f33-8047-4e4c-b064-2b7f401b3688'
+$deepseekProviderId = $env:CC_SWITCH_DEEPSEEK_PROVIDER_ID
+$qwenUpstream = if ($env:CC_SWITCH_QWEN_UPSTREAM) { $env:CC_SWITCH_QWEN_UPSTREAM } else { 'https://api.a2agent.me' }
+$glmUpstream = if ($env:CC_SWITCH_GLM_UPSTREAM) { $env:CC_SWITCH_GLM_UPSTREAM } else { 'https://api.a2agent.me' }
 
 function Set-JsonProperty {
   param(
@@ -66,6 +68,7 @@ function Set-JsonProperty {
 }
 
 function Ensure-ClaudeDeepSeekSettings {
+  if (-not $deepseekProviderId) { return }
   if (-not (Test-Path -LiteralPath $ccSwitchSettingsPath)) { return }
   if (-not (Test-Path -LiteralPath $claudeSettingsPath)) { return }
   try {
@@ -88,20 +91,20 @@ function Ensure-ClaudeDeepSeekSettings {
 
 $configs = @(
   [pscustomobject]@{
-    Name = 'qwen'; Port = '15727'; Upstream = 'https://api.a2agent.me'; Script = $readProxy
+    Name = 'qwen'; Port = '15727'; Upstream = $qwenUpstream; Script = $readProxy
     LogDir = (Join-Path $root 'logs-qwen'); EnsureSettings = $false
     Env = @{
-      READ_SANITIZER_HOST = '127.0.0.1'; READ_SANITIZER_PORT = '15727'; READ_SANITIZER_UPSTREAM = 'https://api.a2agent.me'
+      READ_SANITIZER_HOST = '127.0.0.1'; READ_SANITIZER_PORT = '15727'; READ_SANITIZER_UPSTREAM = $qwenUpstream
       READ_SANITIZER_LOG_DIR = (Join-Path $root 'logs-qwen'); READ_SANITIZER_STRIP_EMPTY_THINKING = '1'
       READ_SANITIZER_TEXT_ONLY_MESSAGE_CONTENT = '0'; READ_SANITIZER_PROMOTE_TOOL_TEXT = '1'
       READ_SANITIZER_ENFORCE_READ_FILE_PATH = '1'; READ_SANITIZER_MODELS_LIST = 'qwen3.8-max'
     }
   },
   [pscustomobject]@{
-    Name = 'glm'; Port = '15726'; Upstream = 'https://api.a2agent.me'; Script = $readProxy
+    Name = 'glm'; Port = '15726'; Upstream = $glmUpstream; Script = $readProxy
     LogDir = (Join-Path $root 'logs-glm'); EnsureSettings = $false
     Env = @{
-      READ_SANITIZER_HOST = '127.0.0.1'; READ_SANITIZER_PORT = '15726'; READ_SANITIZER_UPSTREAM = 'https://api.a2agent.me'
+      READ_SANITIZER_HOST = '127.0.0.1'; READ_SANITIZER_PORT = '15726'; READ_SANITIZER_UPSTREAM = $glmUpstream
       READ_SANITIZER_LOG_DIR = (Join-Path $root 'logs-glm'); READ_SANITIZER_STRIP_EMPTY_THINKING = '1'
       READ_SANITIZER_TEXT_ONLY_MESSAGE_CONTENT = '1'; READ_SANITIZER_PROMOTE_TOOL_TEXT = '1'
     }

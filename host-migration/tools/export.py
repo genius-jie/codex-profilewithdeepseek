@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import subprocess
 import tomllib
+from model_portability import transform_adapter
 
 from common import (HOSTS, PRIVATE_NAME, SKIP_DIRS, TEXT_SUFFIXES, is_reparse, safe_relative,
                     json_bytes, load_json, scan_secrets, secret_values, sha256,
@@ -84,6 +85,8 @@ def export(sources: dict, package: Path):
                     return
                 raise ValueError(f"Potential credential in selected source (value withheld): {label}")
             changes = list(changes or [])
+            text, adapter_changes = transform_adapter(label, text, bindings["POWERSHELL_EXE"])
+            changes.extend(adapter_changes)
             if label == "codex/AGENTS.md":
                 retired = str(Path(bindings["USERPROFILE"]) / "AppData/Roaming/CodexPlusPlusProfile/.codex")
                 if retired in text:

@@ -27,7 +27,7 @@ function Resolve-Nssm {
 }
 
 $nssm = Resolve-Nssm
-$powershell = Join-Path $PSHOME 'powershell.exe'
+$powershell = '@@POWERSHELL_EXE:win@@'
 $stdout = Join-Path $logDir 'codex-id-sanitizer.stdout.log'
 $stderr = Join-Path $logDir 'codex-id-sanitizer.stderr.log'
 

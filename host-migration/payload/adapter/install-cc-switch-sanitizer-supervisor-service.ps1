@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 $serviceName = 'CcSwitchSanitizerSupervisor'
-$nssm = '@@SYSTEMROOT:win@@\system32\nssm.exe'
+$nssmCommand = Get-Command nssm.exe -ErrorAction SilentlyContinue
+$nssm = if ($nssmCommand) { $nssmCommand.Source } else { '@@SYSTEMROOT:win@@\system32\nssm.exe' }
 $sanitizerDir = '@@SANITIZER_ROOT:win@@'
 $startScript = Join-Path $sanitizerDir 'start-cc-switch-sanitizer-supervisor.ps1'
 $serviceLogDir = Join-Path $sanitizerDir 'service-logs'
@@ -11,7 +12,7 @@ $principal = [Security.Principal.WindowsPrincipal]::new($identity)
 $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
   $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"")
-  Start-Process -FilePath 'powershell.exe' -ArgumentList $args -Verb RunAs -Wait
+  Start-Process -FilePath '@@POWERSHELL_EXE:win@@' -ArgumentList $args -Verb RunAs -Wait
   exit 0
 }
 
@@ -20,7 +21,7 @@ if (-not (Test-Path -LiteralPath $startScript)) { throw "supervisor script not f
 New-Item -ItemType Directory -Force -Path $serviceLogDir | Out-Null
 
 $existing = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-if (-not $existing) { & $nssm install $serviceName 'powershell.exe' | Out-Null }
+if (-not $existing) { & $nssm install $serviceName '@@POWERSHELL_EXE:win@@' | Out-Null }
 
 & $nssm set $serviceName AppDirectory $sanitizerDir | Out-Null
 & $nssm set $serviceName AppParameters "-NoProfile -ExecutionPolicy Bypass -File `"$startScript`"" | Out-Null

@@ -1,0 +1,228 @@
+{
+  "schema_version": "host-model-migration-verification.v1",
+  "client_date": "2026-10-19",
+  "scope": "portable third-party model setup and read-only source-machine runtime checks",
+  "software_baseline": {
+    "CodexManager": "0.6.3",
+    "CC Switch": "4.0.4"
+  },
+  "package": {
+    "manifest_entries": 849,
+    "sealed_files": 867,
+    "checksums_sha256": "c2b93c086efcc062aab8a107a9791678e88ac7ff9b73b4b802e1f8037e960b62",
+    "checker_sha256": "72bf6b4f2678ba2cc75efcae3592ff1e6ddd4bf4c743d210fac518f26896e221",
+    "native_general_commit": "449eee774e717e5813b96fa366f19efadcf567d3"
+  },
+  "offline_verification": {
+    "command": "python -m unittest discover -s host-migration/tools -p test_*.py -v",
+    "passed": 28,
+    "failed": 0,
+    "duration_seconds": 22.28,
+    "includes": "three-host restore, real restored SessionStart hooks, isolation/collision/rollback/long paths, protocol fixture lineage, reasoning replay, provider selection ownership and portability transforms",
+    "changed_powershell_scripts_parsed": 3,
+    "guide_powershell_blocks_parsed": 7,
+    "powershell_parse_failures": 0,
+    "document_passport": "valid",
+    "cached_diff_check_exit": 0
+  },
+  "source_api_tool_roundtrips": [
+    {
+      "target": "codex_plus_plus",
+      "checks": [
+        {
+          "requested_model": "deepseek-v4-pro",
+          "catalog_visible": true,
+          "gateway_discovered": true,
+          "http_model_roundtrip": "passed",
+          "local_fixture_tool": "passed",
+          "tool_result_consumed": true,
+          "reported_model_matches_request": true,
+          "native_desktop_ui": "requires_target_host_acceptance",
+          "status": "passed",
+          "elapsed_seconds": 7.953
+        }
+      ],
+      "all_passed": true,
+      "changed_provider_or_host_settings": false,
+      "credential_values_logged": false
+    },
+    {
+      "target": "codex_plus_plus",
+      "checks": [
+        {
+          "requested_model": "qwen3.8-max",
+          "catalog_visible": true,
+          "gateway_discovered": true,
+          "http_model_roundtrip": "passed",
+          "local_fixture_tool": "passed",
+          "tool_result_consumed": true,
+          "reported_model_matches_request": true,
+          "native_desktop_ui": "requires_target_host_acceptance",
+          "status": "passed",
+          "elapsed_seconds": 8.953
+        }
+      ],
+      "all_passed": true,
+      "changed_provider_or_host_settings": false,
+      "credential_values_logged": false
+    },
+    {
+      "target": "codex_plus_plus",
+      "checks": [
+        {
+          "requested_model": "kimi-k3",
+          "catalog_visible": true,
+          "gateway_discovered": true,
+          "http_model_roundtrip": "passed",
+          "local_fixture_tool": "passed",
+          "tool_result_consumed": true,
+          "reported_model_matches_request": true,
+          "native_desktop_ui": "requires_target_host_acceptance",
+          "status": "passed",
+          "elapsed_seconds": 10.219
+        }
+      ],
+      "all_passed": true,
+      "changed_provider_or_host_settings": false,
+      "credential_values_logged": false
+    },
+    {
+      "target": "codex_plus_plus",
+      "checks": [
+        {
+          "requested_model": "glm-5.3-flash",
+          "catalog_visible": true,
+          "gateway_discovered": true,
+          "http_model_roundtrip": "passed",
+          "local_fixture_tool": "passed",
+          "tool_result_consumed": true,
+          "reported_model_matches_request": true,
+          "native_desktop_ui": "requires_target_host_acceptance",
+          "status": "passed",
+          "elapsed_seconds": 16.625
+        }
+      ],
+      "all_passed": true,
+      "changed_provider_or_host_settings": false,
+      "credential_values_logged": false
+    },
+    {
+      "target": "claude_code",
+      "checks": [
+        {
+          "requested_model": "deepseek-v4-pro",
+          "catalog_visible": null,
+          "gateway_discovered": null,
+          "http_model_roundtrip": "passed",
+          "local_fixture_tool": "passed",
+          "tool_result_consumed": true,
+          "reported_model_matches_request": true,
+          "native_desktop_ui": "requires_target_host_acceptance",
+          "status": "passed",
+          "elapsed_seconds": 8.062
+        }
+      ],
+      "all_passed": true,
+      "changed_provider_or_host_settings": false,
+      "credential_values_logged": false
+    }
+  ],
+  "native_claude_cli": {
+    "host": "claude_code",
+    "requested_model": "deepseek-v4-pro",
+    "native_cli_exit": 0,
+    "fixture_result_consumed": true,
+    "native_reported_error": false,
+    "elapsed_seconds": 10.844,
+    "raw_output_saved": false,
+    "provider_configuration_changed": false
+  },
+  "claude_qwen_supplier_adapter": {
+    "target": "openai_chat_provider",
+    "checks": [
+      {
+        "requested_model": "qwen3.8-max",
+        "catalog_visible": null,
+        "gateway_discovered": true,
+        "http_model_roundtrip": "passed",
+        "local_fixture_tool": "passed",
+        "tool_result_consumed": true,
+        "reported_model_matches_request": true,
+        "native_claude_provider_switch": "not_performed",
+        "status": "passed",
+        "elapsed_seconds": 10.844
+      }
+    ],
+    "all_passed": true,
+    "changed_provider_or_host_settings": false,
+    "credential_values_logged": false
+  },
+  "resolved_probe_failures": [
+    {
+      "observation": "Qwen thinking mode rejected forced tool_choice with HTTP 400",
+      "diagnosis": "the new probe forced a named tool; normal caller auto selection is compatible",
+      "resolution": "use auto selection, require a real function call and consumption of the returned local random fixture; source Qwen Chat and Responses reruns passed",
+      "production_thinking_or_provider_changed": false
+    },
+    {
+      "observation": "one intermediate Qwen Responses check timed out",
+      "resolution": "explicit read-only retry and final source-model sweep passed",
+      "timeout_root_cause_fixed_or_long_term_stability_claimed": false
+    },
+    {
+      "observation": "a Windows SQLite fixture kept a connection open through temporary-directory cleanup",
+      "resolution": "explicit connection closing; final 28 tests passed; a missing native database also returns a safe error without creating a file"
+    }
+  ],
+  "privacy_and_source_protection": {
+    "proposed_git_tree_files": 1009,
+    "credential_scan_findings": [],
+    "known_credential_values_compared": 20,
+    "source_files_compared": 441,
+    "source_exact_snapshot_matches": 440,
+    "source_snapshot_drift": [
+      "codex/config.toml"
+    ],
+    "source_missing": [],
+    "virtual_manifest_sources_resolved": 3,
+    "source_writes_performed": false,
+    "S12_W9_resolution": {
+      "initial_audit_error": "logical manifest source labels were treated as literal paths; raw ordinary Codex config hash also differs from the historical snapshot",
+      "diagnosis": "resolved extra-instruction labels using the exporter contract; portable comparison observes desktop.conversationDetailMode plus intentionally excluded native runtime fields",
+      "action": "read-only classification; preserve the published ordinary Codex snapshot and the live official-account configuration",
+      "rerun": "passed: all selected source files present; only classified ordinary config snapshot drift; credential scan has zero findings"
+    }
+  },
+  "template_portability": {
+    "service_shell": "selected absolute PowerShell 7 path",
+    "nssm": "target PATH first, then existing System32 fallback",
+    "supervisor": "reuse canonical owner; Qwen/GLM upstreams are configurable; source-machine DeepSeek provider-ID based settings rewrite is opt-in",
+    "reexported_from_live_source_transform_descriptions_match_manifest": true,
+    "live_services_restarted_or_modified": false,
+    "current_cc_switch_provider_switched": false,
+    "ordinary_codex_official_mode_preserved": true
+  },
+  "review": {
+    "mode": "producer self-review and executable negative tests",
+    "independent_reviewer_verdict": "not_claimed",
+    "checked": [
+      "native supplier/protocol boundaries",
+      "separate host authentication",
+      "tool/result linkage and full assistant/reasoning replay",
+      "bounded fixture execution",
+      "credential redaction",
+      "service portability and original owner reuse"
+    ]
+  },
+  "github_download": {
+    "status": "pending_after_publication"
+  },
+  "limits": [
+    "A different physical computer is not available in this session; target application installation, account access, desktop environment inheritance and provider credentials require target-machine acceptance.",
+    "Codex++ source checks prove authenticated catalog and actual model/tool/result requests; native desktop model selection, images, reasoning variants and long-session compaction remain separate target-machine acceptance.",
+    "Native Claude CLI was tested with the current DeepSeek provider. Qwen supplier plus adapter was tested without switching the global Claude provider; full native Claude Qwen/Kimi/GLM sessions were not claimed.",
+    "Only the representative model IDs in the recorded source results were runtime-tested; other documented model IDs require their own target checks.",
+    "Historical source snapshots and current app-generated configuration can differ; the ordinary Codex source config was read only and its classified snapshot drift was retained.",
+    "Credentials and provider/account databases are private local inputs and are excluded from Git."
+  ]
+}

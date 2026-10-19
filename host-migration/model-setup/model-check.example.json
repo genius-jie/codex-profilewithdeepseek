@@ -1,0 +1,21 @@
+{
+  "schema_version": "host-model-check.v1",
+  "codex_plus_plus": {
+    "base_url": "http://127.0.0.1:15740/v1",
+    "token_env": "CODEXPP_GATEWAY_TOKEN",
+    "header_env": {"x-openai-actor-authorization": "CODEXPP_ACTOR_AUTHORIZATION"},
+    "models": ["deepseek-v4-pro", "qwen3.8-max", "kimi-k3", "glm-5.3-flash"]
+  },
+  "openai_chat_provider": {
+    "base_url": "http://127.0.0.1:15727/v1",
+    "token_env": "QWEN_UPSTREAM_API_KEY",
+    "header_env": {},
+    "models": ["qwen3.8-max"]
+  },
+  "claude_code": {
+    "base_url": "http://127.0.0.1:15733",
+    "token_env": "ANTHROPIC_AUTH_TOKEN",
+    "header_env": {},
+    "models": ["deepseek-v4-pro"]
+  }
+}

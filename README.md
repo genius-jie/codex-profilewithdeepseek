@@ -2,6 +2,8 @@
 
 > **三宿主换机入口**：当前普通 Codex、Codex++、Claude Code 的配置与提示词迁移，使用 [host-migration 接手说明](host-migration/README.md)。其中提供按宿主隔离的模板、钩子、专用技能、启动依赖、校验清单、统一新机入口与回退；下文的根目录配置和简化启动脚本保留为早期 Profile 示例，不代表当前三个宿主的完整运行配置。
 
+> **原生 Codex / Codex++ 硬隔离**：原生 Codex 只使用 ChatGPT 账号直连，Codex++ 只使用 CodexManager `15740` 中转。隔离契约、故障还原、新机部署与验收命令见 [隔离整改与新机部署](docs/codex-native-account-isolation.md)。只读自检：`python scripts/codex_isolation.py audit`。
+
 > **基于 OpenAI Codex / Codex++ 架构的第三方大模型（DeepSeek、Qwen、Kimi）本地化工程 Profile 解决方案。**
 > 借助本地反向代理网关（CodexManager / “可乐”），打破模型壁垒，在本地维护高效、高自主性、上下文超长的 Agent 开发执行环境。
 
@@ -81,7 +83,8 @@
 ├── README.md                   # 架构与实战文档
 ├── scripts/
 │   ├── Sync-ModelCatalog.ps1   # 模型目录同步与校验自动化脚本
-│   └── Start-CodexWithProfile.ps1 # 一键绑定当前 Profile 启动脚本
+│   ├── Start-CodexWithProfile.ps1 # 一键绑定当前 Profile 启动脚本
+│   └── codex_isolation.py      # 原生账号 / Codex++ 中转隔离审计与修复
 └── skills/                     # 精选配套技能库
     ├── S40_三方模型工具调用适配/
     ├── S34_Codex认证切换/
@@ -119,6 +122,33 @@ api_key = "YOUR_API_KEY_OR_TOKEN"
 pwsh ./scripts/Start-CodexWithProfile.ps1
 ```
 启动后，Codex 将自动识别并切换至 `DeepSeek-V4-Pro`，同时加载防漂移契约与本地开发流水线！
+
+---
+
+## 原生 Codex 与 Codex++ 硬隔离
+
+两套宿主必须使用不同的物理目录和网络路径，不能共用 `CODEX_HOME`，也不能把原生 Codex 接到 CodexManager：
+
+| 宿主 | `CODEX_HOME` | 网络路径 |
+|---|---|---|
+| 原生 Codex | `%USERPROFILE%\.codex` | ChatGPT 账号直连，无 `model_provider` |
+| Codex++ | `<Codex++Profile>\AppData\Roaming\Codex\.codex` | CodexManager `http://127.0.0.1:15740/v1` |
+
+只读审计与真实直连验收：
+
+```powershell
+python scripts/codex_isolation.py audit
+python scripts/codex_isolation.py verify --probe   # 可选，会消耗一次账号额度
+```
+
+如果原生配置被 CodexManager 写入了 CM provider、48760 gateway 或 gateway marker，先预览再修复：
+
+```powershell
+python scripts/codex_isolation.py repair
+python scripts/codex_isolation.py repair --apply --backup-dir D:\MigrationPrivate\codex-isolation-backup
+```
+
+修复脚本只操作原生侧，不会改 Codex++ 的 `15740` 配置。完整的新机部署顺序、手工验收、token 吊销处理和回滚见 [隔离整改与新机部署](docs/codex-native-account-isolation.md)。
 
 ---
 

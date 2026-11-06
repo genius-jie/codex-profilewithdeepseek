@@ -24,8 +24,57 @@ const Module = require("node:module");
 const pkg = require("./package.json");
 const meta = pkg.__codexpp || {};
 const originalMain = meta.originalMain;
-const userRoot = meta.userRoot;
+const userRoot = meta.userRoot || "D:\\github\\codex-profilewithdeepseek-data\\CodexPlusPlusProfile\\AppData\\Roaming\\codex-plusplus";
 const MAX_LOG_BYTES = 10 * 1024 * 1024;
+
+// --- Early Notification & Profile Isolation ---
+// When launched directly by Windows Shell (e.g. clicking a toast notification),
+// the process starts without CLI switches or profile environment variables.
+// Guarantee isolated userData and AppUserModelId before bootstrap runs.
+const roamingDir = path.resolve(userRoot, "..");
+const profileRoot = path.resolve(userRoot, "..", "..", "..");
+const codexHome = path.join(roamingDir, "Codex", ".codex");
+const CODEX_PLUSPLUS_AUMID = "OpenAI.CodexPlusPlus_2p2nqsd0c76g0!ChatGPTPP";
+
+process.env.CODEX_ELECTRON_USER_DATA_PATH = profileRoot;
+if (!process.env.USERPROFILE || process.env.USERPROFILE.toLowerCase().startsWith("c:\\users\\")) {
+  process.env.USERPROFILE = profileRoot;
+}
+if (!process.env.HOME || process.env.HOME.toLowerCase().startsWith("c:\\users\\")) {
+  process.env.HOME = profileRoot;
+}
+if (!process.env.APPDATA || process.env.APPDATA.toLowerCase().startsWith("c:\\users\\")) {
+  process.env.APPDATA = roamingDir;
+}
+if (!process.env.CODEX_HOME) {
+  process.env.CODEX_HOME = codexHome;
+}
+process.env.CODEX_PLUSPLUS_USER_ROOT = userRoot;
+process.env.CODEX_PLUSPLUS_HOME = userRoot;
+
+try {
+  const electron = require("electron");
+  if (electron && electron.app) {
+    if (electron.app.commandLine) {
+      if (!electron.app.commandLine.hasSwitch("user-data-dir")) {
+        electron.app.commandLine.appendSwitch("user-data-dir", profileRoot);
+      }
+      if (!electron.app.commandLine.hasSwitch("password-store")) {
+        electron.app.commandLine.appendSwitch("password-store", "basic");
+      }
+    }
+    if (typeof electron.app.setAppUserModelId === "function") {
+      const origSetAppUserModelId = electron.app.setAppUserModelId.bind(electron.app);
+      electron.app.setAppUserModelId = function (id) {
+        if (id === "com.openai.codex" || id === "OpenAI.Codex_2p2nqsd0c76g0!App") {
+          return origSetAppUserModelId(CODEX_PLUSPLUS_AUMID);
+        }
+        return origSetAppUserModelId(id);
+      };
+      origSetAppUserModelId(CODEX_PLUSPLUS_AUMID);
+    }
+  }
+} catch (_) {}
 
 function appendCappedLog(file, line) {
   const incoming = Buffer.from(line);

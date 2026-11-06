@@ -264,6 +264,7 @@ Stop hook 用于继续执行时，应优先输出当前 Codex 可接受的简洁
 - 适配器回归至少要观察：HTTP 200、`response.completed`、`custom_tool_call_input.done` 和非空工具输入；只看到 SSE 文件存在或一条文本不构成通过证据。
 - 代码模式内部 `tools.exec_command` 使用当前公开的 `cmd/workdir/yield_time_ms`。只对已观察到的 shell 参数别名做窄兼容，其他工具按各自声明传参；旧直接 shell 路由器的字段名不能套到当前代码模式。
 - DeepSeek 若把宿主内部的 `exec_command` 或 `mcp__node_repl__js` 直接作为 custom tool 名返回，适配器只将这两个已知别名转换成代码模式 `exec`：`exec_command` 通过 `tools.exec_command(payload)` 执行，`mcp__node_repl__js` 提供 `nodeRepl.write -> text` 绑定；不得把其他未知名称泛化为工具别名。
+- Codex 26.1027 起工具声明为 `function` / `custom` / `namespace` / `web_search` 四类，只有 `function` 与 `custom` 可按名调用。适配器只能按声明类型分级，禁止“非 function 即 custom”的二分；`namespace`（MCP 服务）与 `web_search`（内置能力）不得暴露为扁平工具，模型仍通过代码模式 `exec` 内的 `tools.*` 绑定访问。历史项不是工具类型的权威，声明才是；历史只能补充声明里缺失的名字。未声明为 custom 的名字一旦发出 `custom_tool_call`，宿主工具注册表会以 `unsupported custom tool call: <name>` 终止整轮，属协议级失败而非可恢复工具错误。当前落地版本 `responses-summary-v44-tool-kind-custom-v1`，故障链见 [错题本 2026-11-06](resources/错题本.md)。
 - 若日志出现 `tool exec_command invoked with incompatible payload`，随后反复出现 `Custom tool call output is missing for call id: ctc_...`，这是第一条工具调用失败后旧 call id 卡住了后续轮次；停止当前坏轮次、重启 Codex++ 清空上下文，再用新任务回归，不要让模型继续重试同一个 call id。
 - 适配器必须对同一第三方工具链实行 single-flight：同一时间只允许一个活动上游请求，后续请求排队；客户端 `aborted`/响应 `close` 时立即取消上游并释放队列槽位，避免旧请求占用供应商并发槽并把后续调用误报为并发限制。
 - 上游 SSE 可能以 HTTP 200 携带 `error` 事件；不得丢弃该错误后合成 `response.completed(output=[])`。只有尚未产生任何模型内容或工具调用的空错误流才允许有限退避重试；一旦已产生输出或工具调用，禁止重放以避免副作用重复执行。

@@ -41,7 +41,10 @@ if (-not (Test-AdapterTreeHasFiles -Path $SharedClisRoot)) {
         throw "Shared OpenCLI adapter root is empty or missing: $SharedClisRoot"
     }
     if (-not (Test-AdapterTreeHasFiles -Path $SeedClisRoot)) {
-        throw "Cannot seed shared OpenCLI adapters; seed root is empty or missing: $SeedClisRoot"
+        # OpenCLI is an optional adapter host. A machine that never installed it
+        # must still start Codex++; only an explicit -NoSeed request is a error.
+        Write-Host "OpenCLI adapters not present; nothing to sync (seed root empty: $SeedClisRoot)" -ForegroundColor DarkGray
+        return
     }
     New-Item -ItemType Directory -Path $SharedClisRoot -Force | Out-Null
     Invoke-RobocopyChecked -Source $SeedClisRoot -Target $SharedClisRoot

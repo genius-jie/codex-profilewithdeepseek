@@ -654,10 +654,13 @@ $env:GIT_OPTIONAL_LOCKS = "0"
 $env:OPENCLAW_CONFIG_PATH = "@@USERPROFILE:win@@\.openclaw\openclaw.json"
 $env:OPENCLAW_STATE_DIR = "@@USERPROFILE:win@@\.openclaw"
 $personalAiSuiteBin = "@@SUITE_ROOT:win@@\bin"
-if (-not (Test-Path -LiteralPath $personalAiSuiteBin -PathType Container)) {
-    throw "Personal AI Suite command directory not found: $personalAiSuiteBin"
+if (Test-Path -LiteralPath $personalAiSuiteBin -PathType Container) {
+    $env:PATH = "$personalAiSuiteBin$([IO.Path]::PathSeparator)$env:PATH"
+} else {
+    # The suite is an optional command source, not a launch precondition: a
+    # host that never installed it must still start Codex++ without it.
+    Write-Host "Personal AI Suite bin not present, skipped from PATH: $personalAiSuiteBin" -ForegroundColor DarkGray
 }
-$env:PATH = "$personalAiSuiteBin$([IO.Path]::PathSeparator)$env:PATH"
 
 foreach ($name in @("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy")) {
     Remove-Item "Env:\$name" -ErrorAction SilentlyContinue

@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $powerShell7 = '@@POWERSHELL_EXE:win@@'
-$nodeExe = 'E:\nodejs\node-v22.22.0-win-x64\node.exe'
+$nodeExe = '@@NODE_EXE:win@@'
 $nativeCli = '@@CODEXPP_SOURCE:win@@\packages\installer\dist\cli.js'
 $cliShimTemplate = '@@LAUNCHER_ROOT:win@@\CodexPlusPlus-ControlledCliShim.cmd.template'
 $runtimeBin = '@@CODEXPP_RUNTIME:win@@\bin'

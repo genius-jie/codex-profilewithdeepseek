@@ -19,7 +19,8 @@ param(
     [switch]$DryRun
 )
 $ErrorActionPreference = 'SilentlyContinue'
-$py = (Get-Command python -ErrorAction SilentlyContinue).Source
+$py = '@@PYTHON_EXE:win@@'
+if (-not (Test-Path -LiteralPath $py -PathType Leaf)) { $py = (Get-Command python -ErrorAction SilentlyContinue).Source }
 if (-not $py) { $py = 'python' }
 $logDir = '@@CODEXPP_RUNTIME:win@@\log'
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null

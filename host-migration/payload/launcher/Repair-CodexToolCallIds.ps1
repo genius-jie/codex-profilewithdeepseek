@@ -18,9 +18,17 @@ if (-not (Test-Path -LiteralPath $pyScript)) {
   throw "Repair-CodexToolCallIds.py not found at $pyScript"
 }
 
-$python = (Get-Command python -ErrorAction SilentlyContinue)
-if (-not $python) {
-  $python = (Get-Command py -ErrorAction SilentlyContinue)
+$python = $null
+# Resolve the pinned interpreter first: on a fresh Windows host a bare "python"
+# is the Microsoft Store alias, which resolves and then fails without output.
+$pinnedPython = '@@PYTHON_EXE:win@@'
+if (Test-Path -LiteralPath $pinnedPython -PathType Leaf) {
+  $python = [pscustomobject]@{ Source = $pinnedPython }
+} else {
+  $python = (Get-Command python -ErrorAction SilentlyContinue)
+  if (-not $python) {
+    $python = (Get-Command py -ErrorAction SilentlyContinue)
+  }
 }
 if (-not $python) {
   throw 'python interpreter not found. Install Python or add it to PATH.'

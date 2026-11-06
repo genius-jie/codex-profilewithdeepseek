@@ -46,7 +46,10 @@ if (-not $Force -and $pkg -and $pkg.InstallLocation -eq $mirror.FullName -and
 }
 if (-not $elevated) {
     Log "registration needed; relaunching elevated (one UAC prompt)"
-    $p = Start-Process pwsh -Verb RunAs -Wait -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$PSCommandPath,'-Force')
+    # Launch the pinned physical PowerShell 7. A bare "pwsh" resolves to the
+    # Microsoft Store alias, which does not come up in the elevated context and
+    # makes this self-elevation fail without a message.
+    $p = Start-Process '@@POWERSHELL_EXE:win@@' -Verb RunAs -Wait -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$PSCommandPath,'-Force')
     exit $p.ExitCode
 }
 

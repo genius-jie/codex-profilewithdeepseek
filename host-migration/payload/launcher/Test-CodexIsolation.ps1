@@ -118,7 +118,12 @@ function Get-CodexPlusPlusProxyAuthCheck {
         # gateway directly.  Keep this self-check aligned with the selected
         # model instead of treating one transport as globally valid.
         $chatOnlyModel = $model -in @('deepseek-v4-pro', 'kimi-k3')
-        $envKeyAbsent = -not [regex]::IsMatch($providerBody, '(?m)^\s*env_key\s*=')
+        # The secret must not be duplicated as literal key material in
+        # config.toml. Naming an environment variable with env_key is the
+        # documented provider shape (model-setup/README) and this Codex build
+        # requires a provider credential source: it does not fall back to
+        # auth.json for a custom provider.
+        $noInlineApiKey = -not [regex]::IsMatch($providerBody, '(?m)^\s*api_key\s*=')
         $wireApiIsResponses = [regex]::IsMatch(
             $providerBody,
             '(?m)^\s*wire_api\s*=\s*["'']responses["'']\s*$'
@@ -148,9 +153,9 @@ function Get-CodexPlusPlusProxyAuthCheck {
         }
         $keySource = if ($configKey.Length -eq 0) { 'auth.json' } else { 'auth.json+config.toml' }
         return [pscustomobject]@{
-            Pass = ($modeOk -and $mirrorOk -and $providerSelected -and $envKeyAbsent -and
+            Pass = ($modeOk -and $mirrorOk -and $providerSelected -and $noInlineApiKey -and
                 $wireApiOk -and $baseUrlOk -and $oauthFieldsAbsent)
-            Summary = "exists; auth_mode=apikey:$modeOk; key_source=$keySource; key_mirror_match=$mirrorOk; key_length=$($authKey.Length); provider_cm=$providerSelected; model=$model; chat_only_model=$chatOnlyModel; expected_base_url=$expectedBaseUrl; base_url_ok=$baseUrlOk; wire_api_ok=$wireApiOk; env_key_absent=$envKeyAbsent; oauth_fields_absent=$oauthFieldsAbsent"
+            Summary = "exists; auth_mode=apikey:$modeOk; key_source=$keySource; key_mirror_match=$mirrorOk; key_length=$($authKey.Length); provider_cm=$providerSelected; model=$model; chat_only_model=$chatOnlyModel; expected_base_url=$expectedBaseUrl; base_url_ok=$baseUrlOk; wire_api_ok=$wireApiOk; no_inline_api_key=$noInlineApiKey; oauth_fields_absent=$oauthFieldsAbsent"
         }
     } catch {
         return [pscustomobject]@{

@@ -5,7 +5,7 @@ if /I "%~1"=="update" goto :managed_update
 if /I "%~1"=="self-update" goto :managed_update
 if /I "%~1"=="repair" goto :managed_repair
 if /I "%~1"=="install" goto :managed_install
-"E:\nodejs\node-v22.22.0-win-x64\node.exe" "@@CODEXPP_SOURCE:win@@\packages\installer\dist\cli.js" %*
+"@@NODE_EXE:win@@" "@@CODEXPP_SOURCE:win@@\packages\installer\dist\cli.js" %*
 set "CODEXPP_EXIT=%ERRORLEVEL%"
 endlocal & exit /b %CODEXPP_EXIT%
 

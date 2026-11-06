@@ -1,0 +1,517 @@
+---
+domain: codex-plusplus-profile
+tier: L3
+status: active
+doc_status: active-reference
+related:
+  - D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex\skills\S34_Codex认证切换\SKILL.md
+  - C:\Users\Administrator\.agent\assets\workflows\W7_知识回流分析.md
+  - C:\Users\Administrator\.agent\records\experience\
+birth_ceremony_id: bc-s34mistake-8f3c2a19
+birth_ceremony_date: 2026-05-16
+---
+
+# S34 错题本
+
+> **当前适用性声明（2026-08-27）**：本文件保存历史故障与当时修复，不是当前生命周期 SSOT。凡涉及 `codex-plusplus-watcher*`、`watcher.cmd`、`watcher.vbs`、自动 self-update、默认 `install` 或 PowerShell 5.1 的旧做法均已退役，不得按历史条目复活。当前唯一有效边界以同目录 `SKILL.md` 的“Host Capability Projection 生命周期调用契约”为准：PowerShell 7 固定物理入口、native autoUpdate 关闭、watcher 资产 absent、installer 更新只走受控 one-shot updater。
+
+> **D-only 更正（2026-09-22）**：C Profile/runtime/source 入口和重解析目录已删除；本文较早条目中的 C 路径只表示事故现场证据，不是可执行入口。当前路径以同目录 Skill 的“最终 D 盘运行数据面”为准。
+
+> **路径执行规则（2026-09-22）**：本文后续出现的 C Profile 路径，只能作为历史错误证据、退役 alias 负例或普通 Codex 对照；不得复制执行。可执行的 Codex++ 日志、Crashpad、session、配置和启动命令一律先换成 `D:\CodexPlusPlusProfile` canonical。
+
+## 2026-08-28 Codex++ 桌面入口锁死 + 启动后卡住点不动
+
+- **现象（两段）**：① 双击 `Codex++ 启动.lnk` 完全没反应，实例进程树还活着；② 当天晚些时候实例窗口在、但点击无反应。
+- **误判点 1（唤醒≠复活）**：见"进程树还活着"就只做窗口唤醒。窗口确实唤出来了，但渲染器已假死，界面点不动——唤醒只解决"窗口被藏起来"，不解决"实例已病"。
+- **误判点 2（Responding 不可信）**：`Process.Responding=True` 曾被当作健康证据。实测卡死实例全部 `Responding=True` 且窗口句柄非 0；它只证明消息泵活着。
+- **误判点 3（守卫与清理名单不同步）**：守卫 `ownedProcessNames` 认得 `node.exe`，但 kill allowlist 里没有，导致"守卫看得见的进程杀不掉"，孤儿 cua_node 对长期残留。两份名单必须同步演进。
+- **真实根因 1（锁死）**：守卫把假死僵尸算作"已在运行"就提前 `exit 0`，脚本里设计好的 stale-kill + 重启恢复路径永远走不到，用户被永久锁在门外。
+- **真实根因 2（卡住）**：CPU 失控空转。实测主窗口进程累计 85354 秒 CPU、某子进程 183012 秒（≈50.8 小时），而进程刚启动不久——多核满速空转，渲染器没有余力响应点击。等待无效。
+- **修复动作**：`Start-CodexPlusPlus.ps1` 守卫改三态（未运行→启动；可唤醒→唤醒后退出，健康实例绝不杀；唤不出窗口→落入设计内清理并重启），新增 `-Restart` 强制整树清理重启；kill allowlist 补 `node.exe`、`codex-code-mode-host.exe`。
+- **验收证据**：`-Restart` 实测清掉 21 个 ++ 进程（含此前杀不掉的 node/node_repl ×8 与 codex-code-mode-host），新实例主窗口 CPU 从 85354 秒降到 8.7 秒；Protect 审计 0 failures（计数 3/2/1 完整）；SessionPaths / SqliteBoundary / ColdSessionReader / ProfileAliasBoundary / Injection 全绿；原生 Codex 12 进程全程零波及。
+- **安全边界**：清理只认 `store-apps\` 路径前缀，且复用脚本内既有边界函数（包目录 + WMI Name 与物理文件名双校验）。禁止按进程名匹配杀 `ChatGPT.exe`——原生实例同名，会误杀用户正在用的 Codex。
+- **副作用（每次全新启动后复现）**：Codex++ 应用启动时会在自己 profile 的开始菜单重建直连快捷方式 `...\CodexPlusPlusProfile\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\ChatGPT.lnk`，目标是 store 内 `app\ChatGPT.exe` 且**不带任何参数**——双击它会不带 `--user-data-dir` 起进程，破坏 profile 隔离。`Protect-CodexPlusPlusGovernance.ps1` 会报 `Direct Codex++ store shortcut bypasses the controlled launcher`。处置：确认目标位于固定 store 内且非 reparse point 后删除该 lnk；用户唯一入口始终是桌面 `Codex++ 启动.lnk` → Proxy.cmd。这不是启动失败，重启后审计报此项属预期，删掉即恢复 PASS。
+- **遗留**：CPU 失控的上游模块未定位。反复出现时需在发生当时抓线程栈，不得把"定期重启"当修复。
+
+## 2026-05-16 Codex 更新后 Codex++ 隔离启动一闪而过
+
+- **现象**：用户更新 Codex 后，双击 `C:\Users\Administrator\Desktop\Codex++ 代理隔离启动.lnk`，窗口一闪而过，Codex++ 没打开。
+- **误判点**：一开始把问题看成系统代理端口 `7890` 未监听。用户给出的 `http://localhost:48761/` 也容易被误当成 `HTTP_PROXY`。
+- **真实根因**：Codex++ 隔离应用包落后于 WindowsApps 新版。旧包 `OpenAI.Codex_26.506...` 缺 `icudtl.dat`、`resources.pak` 等 Electron 必需文件，启动时报 `Invalid file descriptor to ICU data received`。同时官方入口 `codex-plusplus-codex.cmd` 会把解析结果覆盖回旧路径，导致一直启动坏包。
+- **端口边界**：`http://127.0.0.1:48760/v1` 是 CodexManager API 端口；`http://localhost:48761/` 是管理页面；两者都不是系统代理端口。
+- **正确排查顺序**：
+  1. 查当前 `C:\Program Files\WindowsApps\OpenAI.Codex_*` 最新版本。
+  2. 查 `C:\Users\Administrator\AppData\Local\codex-plusplus\store-apps\OpenAI.Codex_*` 是否有同版本完整包。
+  3. 查包内是否有 `Codex.exe`、`icudtl.dat`、`resources.pak`、`v8_context_snapshot.bin`。
+  4. 查 `codex-plusplus-codex.cmd` 最终解析出的 `CODEX_EXE`，确认不是旧版本。
+  5. （历史基线，已被 2026-09-22 条目 supersede）启动后应确认 `--user-data-dir=D:\CodexPlusPlusProfile`；C 盘路径只保留兼容 alias。
+- **修复动作**：复制 WindowsApps 当前完整包到 Codex++ 专用 `store-apps`；让 `Start-CodexPlusPlus.ps1` 和 `codex-plusplus-codex.cmd` 优先解析 Codex++ 专用新版包。
+- **验收证据**：进程路径应落在 `C:\Users\Administrator\AppData\Local\codex-plusplus\store-apps\OpenAI.Codex_26.513...`；（历史基线）当前命令行验收改为物理 `--user-data-dir="D:\CodexPlusPlusProfile"`。
+
+## 2026-05-16 Codex / Codex++ 隔离自检输出不够明显
+
+- **现象**：用户双击 `C:\Users\Administrator\Desktop\Codex 隔离自检.lnk` 后，PowerShell 只列出 `Name / Exists / Path` 表格。虽然结果实际正常，但用户无法一眼判断是成功还是失败。
+- **误判点（2026-08-27 已纠正）**：旧口径把 `plus auth` 缺失当成正常，后来与真实 CodexManager 认证链及同一 Skill 的配置基线冲突。当前契约是：Codex++ `auth.json` 存在，`auth_mode = "apikey"`，其 `OPENAI_API_KEY` 仅作为 `config.toml` 中 `cm.api_key` 的一致镜像；这不等同于官方 OAuth 缓存。
+- **真实根因**：自检脚本只输出事实清单，没有输出总判定和逐项期望值；PowerShell 表格还会截断 `plus electron config` 长路径，进一步降低可读性。
+- **修复动作**：将 `C:\Users\Administrator\.codex-plusplus-config\Test-CodexIsolation.ps1` 改成自检报告格式，顶部输出 `OVERALL: PASS` 或 `OVERALL: FAIL`；每项输出 `[PASS]` / `[FAIL]`、`Expected`、`Actual`、`Path`。
+- **验收证据**：新版脚本应显示 `OVERALL: PASS - Codex and Codex++ are isolated as expected.`；`plus auth` 的 `Expected` 应写明 apiKey 镜像存在且与 `config.toml` 一致；退出码应为 `0`。
+- **安全边界**：自检脚本不能打印 `auth.json`、`config.toml` 正文、token、`api_key`；只允许打印路径、存在性、文件大小和短 hash。
+- **隔离口径**：普通 Codex 和 Codex++ 是两个独立配置面；可以同步治理 intent，但不能混用 `auth.json`、`config.toml`、Electron `.codex` junction 或 `hook-state`。
+
+## 2026-05-16 Stop hook JSON schema 导致 Hook summary 报错
+
+- **现象**：Codex UI 显示 `Hooks summary`，错误为 `hook returned invalid stop hook JSON output`。
+- **误判点**：容易把它当成 Codex++ 权限或认证隔离失败。实际上这属于 Stop hook 输出 schema 不被当前 Codex 接受。
+- **真实根因**：两边 `stop_guard.py` 的 Stop 输出里带了当前 Codex 不接受的 `decision` / `hookSpecificOutput.decision` 字段。
+- **修复动作**：将普通 Codex 和 Codex++ 的 Stop hook 输出收窄为 `{"continue": true, "systemMessage": "..."}`；清理本次诊断失败留下的 `pending_failure_review`，保留其他审计记录。
+- **验收证据**：`python -m py_compile` 两边 hook 通过；手工执行 Stop hook 后可被 `python -m json.tool` 解析；两边 `stop_guard.py` 中不再出现 `"decision"` 或 `hookSpecificOutput`。
+- **隔离口径**：hook 治理逻辑可以同步，但 `hook_common.py` 应按 `CODEX_HOME` 选择各自的 `hook-state`，普通 Codex 与 Codex++ 的 pending 状态不能互相污染。
+
+## 2026-05-20 Codex++ 看守守护进程（Auto-Repair Watcher）物理注册与健康检测诊断失效
+
+- **现象**：在 Codex++ 仪表盘中，自动自愈看守进程（Auto-Repair Watcher）处于红色异常状态，提示 "not ready"，伴随 2 个错误（Error）和 1 个警告（Review）。在执行安装命令 `codexplusplus install` 时遇到 `EBUSY: resource busy or locked` 阻断，或 robocopy 无响应挂起。
+- **误判点**：以为仅凭常规杀死 Codex 单个进程就能解除锁定，或者以为 robocopy 挂起是普通的路径未找到。
+- **真实根因**：
+  1. **EBUSY 锁定**：除了原生的 `Codex`、`codex` 进程外，后台常驻的辅助管理服务 `codexmanager-service`、`codexmanager-start`、`codexmanager-web` 会一直锁定 `AppData\Local\codex-plusplus\store-apps` 下的目录句柄。同时 Electron-builder 的 Electron 进程或未完全退出的 node 进程也会持有锁，导致 rmSync / rmdir 抛出 EBUSY 异常。
+  2. **schtasks.exe 引号参数转义陷阱**：在 Node 中调用 `execFileSync` 执行系统 `schtasks.exe` 创建计划任务时，手动在参数两端添加 `\"` 双引号，而在 Windows 中如果路径末尾是反斜杠（如 `watcher.cmd\`），反斜杠会把双引号转义为字符双引号（`\"` 变为 `\"` 后实际传参为 `watcher.cmd\"`），导致 `schtasks` 无法识别，抛出 `Invalid argument/option` 错误。
+  3. **Robocopy 无限重试死锁**：在克隆具有系统强 ACL 保护的 WindowsApps 目录下的 Centennial Store App 文件时，如果遇到锁定或受保护文件，`robocopy.exe` 默认会进行 1,000,000 次重试，每次间隔 30 秒。这会导致 Node 的同步进程调用发生永久挂起无响应。
+  4. **健康检测 TaskName 不一致**：Installer 注册的间隔任务名称为 `codex-plusplus-watcher-interval`，然而健康监控模块 `watcher-health.ts` 中却硬编码去查询已废弃的 `codex-plusplus-watcher-hourly`，导致即便定时任务成功注册，前端依然检测为 error 状态。
+- **修复动作**：
+  1. **彻底杀灭占用**：在安装和维护动作前，彻底强行杀死所有相关的后台进程（`Codex`, `codex`, `codexmanager-service`, `codexmanager-start`, `codexmanager-web`）。并且在 `mirrorDirectory` 中对 `rmSync` / `cpSync` 采取防御性的 `try-catch` 捕获，在主 app.asar 已经成功写入的前提下忽略非核心占用锁导致的异常。
+  2. **移除冗余的物理引号转义**：去除了 `watcher.ts` 中传递给 `execFileSync` 的冗余引号包裹，将路径中的反斜杠统一转正，利用 Node 底层原生且安全的自动传参打包，彻底消灭转义双引号 Bug；并补全了非管理员身份运行下使用 `Start-Process schtasks.exe -Verb RunAs -WindowStyle Hidden -Wait` 的 UAC 提权容错。
+  3. **限制 Robocopy 重试极限**：在调用 `robocopy.exe` 命令时，强制追加 `"/R:1"` 与 `"/W:1"` 参数，遇到锁定或受限文件时在 1 秒内重试 1 次即快速失败退出，防止进程挂起死锁。
+  4. **同步监控命名 SSOT**：同步更新 `packages/runtime/src/watcher-health.ts` 的查询键为 `codex-plusplus-watcher-interval`，与 Installer 保持绝对对齐。
+- **验收证据**：
+  1. 运行 `Get-ScheduledTask -TaskName "*codex*"`，输出中 `codex-plusplus-watcher` 和 `codex-plusplus-watcher-interval` 均为 `Ready` 状态。
+  2. 运行 `codexplusplus status` 和 `doctor`，均输出 `All checks passed` 且 `watcher: scheduled-task`。
+  3. 后台无多余占用进程，Codex++ 控制台 Dashboard 健康大屏全部转绿为 "OK"。
+
+## 2026-05-20 Windows 计划任务运行批处理（.cmd）导致的控制台黑窗口闪烁骚扰问题
+
+- **现象**：在 Windows 任务计划程序中，以当前用户（Active Interactive Session）身份每隔一段时间自动触发执行 `.cmd` 批处理文件（如 `watcher.cmd`），系统每次都会强制弹出一个 cmd.exe 命令行黑窗口，闪烁一下然后退出，打扰用户的日常开发。
+- **误判点**：以为仅能依靠将任务设为“不管用户是否登录都要运行”（Run whether user is logged on or not）来将其打入 Session 0（需要输入并保存 Windows 账户密码），或者以为必须使用 NSSM 服务进行重度常驻改造。
+- **真实根因**：Windows 计划任务机制在运行 `.cmd` / `.bat` 或控制台程序时，如果是以交互登录用户身份运行，会默认拉起控制台宿主（conhost/cmd.exe）展示窗口。而对于定时脚本，使用 NSSM 服务会无意义常驻占用内存，且容易被杀毒软件误杀。
+- **修复动作**：
+  1. 采用零开销、零干扰的**“VBS 脚本静默代理”**方案。在 `watcher.cmd` 同级目录下生成一个 VBScript 代理脚本 `watcher.vbs`：
+     ```vbs
+     Set WshShell = CreateObject("WScript.Shell")
+     WshShell.Run "cmd.exe /c """ & WshShell.ExpandEnvironmentStrings("%APPDATA%") & "\codex-plusplus\bin\watcher.cmd""", 0, False
+     ```
+     （使用 `WshShell.Run` 且将窗口风格设为 `0` 代表 100% 隐藏运行）。
+  2. 修改 `watcher.ts`，在 `windowsWatcherTaskCommand` 中同时自动写入 `watcher.cmd` 和 `watcher.vbs`，并让其直接返回 `vbsPath`（由于系统默认关联，计划任务执行 `.vbs` 会自动用 `wscript.exe` 静默隐形调起它）。
+- **验收证据**：
+  - 定时任务配置中的 Action 路径成功指向 `watcher.vbs`。
+  - 任务被手动触发时，完全隐形后台运行，没有任何控制台或 cmd 黑窗口闪烁弹出。
+
+## 2026-05-20 Codex / Codex++ 隔离启动与代理网关自愈恢复
+
+- **现象**：代理直连模式突然失效，客户端退回到官方 OAuth 登录界面，后台代理网关 API 端口 `48760` and Web 管理页面端口 `48761` 均断开无法连接。
+- **误判点**：误将普通 Codex 和 Codex++ 两个环境混为一谈。误将普通版 `.codex\config.toml` 也修改为了代理模式，破坏了双应用的物理强隔离界限。
+- **真实根因**：
+  1. **强隔离边界模糊**：普通版 Codex 和增强版 Codex++ 属于两个完全独立的配置面。普通版 Codex 必须使用官方自带的账号密码登录（保持 `config.toml` 中的 `model_provider` 为原厂注释，依靠 `gpt-5.3-codex-spark` 进行登录认证）；只有 Codex++ 专属于代理配置。在修复过程中，如果将普通版也强制引向 `cm`，不仅会破坏隔离自检规则，也会导致普通版登录冲突。
+  2. **网关服务离线**：本地代理辅助网关进程 `codexmanager-service`、`codexmanager-start`、`codexmanager-web` 被意外终止（没有自愈常驻），导致即使客户端配置了 `cm` 代理，也会因为连接不上本地 API 端口 `48760` 而离线。
+- **修复动作**：
+  1. **隔离边界复位**：将普通的 `.codex\config.toml` 彻底物理还原为原厂官方登录配置（重新注释掉 `model_provider = "cm"`，插回原厂模型 `gpt-5.3-codex-spark`）。保持普通版完全走官方路线，不染指代理；同时保持 Codex++ 配置目录（`AppData\Roaming\CodexPlusPlusProfile\.codex\config.toml`）完美指向 `model_provider = "cm"`。
+  2. **静默拉起网关**：调用 `Start-Process -FilePath "C:\Users\Administrator\Downloads\CodexManager-service-windows-x86_64\CodexManager-service-windows-x86_64\codexmanager-start.exe" -WindowStyle Hidden` 后台完全隐藏拉起本地代理网关，恢复 `48760` API 与 `48761` Web 端口的监听。
+  3. **重启隔离客户端**：双击桌面快捷方式或利用隔离启动脚本拉起 Codex++，其会基于 `CodexPlusPlusProfile` 的沙箱配置安全流式直连本地网关。
+- **验收证据**：
+  - 运行 `Test-CodexIsolation.ps1` 后，`normal config` 与 `normal electron config` 还原官方状态 `PASS`；`plus config` 专属代理模式 `PASS`。
+  - `Get-Process` 返回三个运行中的 `codexmanager` 辅助进程。
+  - 连通检测 `Test-NetConnection -Port 48760` 返回 TcpTestSucceeded: True。
+
+## 2026-05-20 Auto Follow-up 自动连击插件主进程崩溃与 UI 渲染挂载 Bug
+
+- **现象**：在 Codex++ 代理模式下，`com.lobster.auto-follow-up` 自动连击插件无法启动，日志中抛出致命错误 `tweak com.lobster.auto-follow-up failed to start: {}`，且设置界面中的重置计数功能渲染显示不全。
+- **误判点**：容易盲目怀疑是插件由于 `manifest.json` 配置错误导致无法被加载，或者怀疑是 API 认证秘钥不匹配。
+- **真实根因**：
+  1. **主进程环境漏锁**：在 `manifest.json` 中，该插件被配置为了 `"scope": "both"`，导致它同时在 Electron 主进程（Main Process）与渲染进程中加载。而在主进程纯 Node.js 的无 DOM 运行环境下，代码会直接执行到绑定全局 `document` 监听器的位置，抛出了致命的 `ReferenceError: document is not defined` 崩溃异常。主进程抛出的 uncaught exception 在 native 序列化时被强行表现为 `{}`，并使整个插件彻底挂起。
+  2. **DOM 插入嵌套错误**：在设置界面 UI 渲染逻辑的第 173 行，重置按钮 `resetBtn` 本该添加到行容器 `row3` 里并只把 `row3` 追加到 `card` 卡片中，却写成了 `card.appendChild(resetBtn)`，导致 `resetBtn` 发生了重复挂载，界面结构异常。
+- **修复动作**：
+  1. **构建强力防御锁**：在 [C:\Users\Administrator\.codex-plusplus\source\tweaks\auto-follow-up\index.js](file:///C:/Users/Administrator/.codex-plusplus/source/tweaks/auto-follow-up/index.js) 中加入针对 `isMain` 和 `typeof document` 的绝对安全防御隔离锁：
+     ```javascript
+     const isMain = api.process === "main" || (typeof process !== "undefined" && process.type === "browser");
+     if (isMain) {
+       // 主进程 IPC 处理器逻辑注册...
+       return;
+     }
+     if (typeof document === "undefined") return; // 渲染进程绝对防御哨点
+     ```
+  2. **修正 UI 挂载层级**：将 `card.appendChild(resetBtn)` 修复为 `card.appendChild(row3)`。
+  3. **沙箱进程防误杀**：采用极精细的 PowerShell 进程路径筛选 `Get-Process | Where-Object { $_.Path -like "*codex-plusplus*" } | Stop-Process -Force`，只杀灭 Codex++ 进程，彻底避开对原厂 Codex 正常使用的干扰。
+- **验收证据**：
+  - 运行 `node -c` 分别验证源码和 AppData Tweak，返回无语法错误。
+  - 用户从桌面会话重新拉起 `Codex++代理模式.lnk` 后，`main.log` 日志中不再出现 `tweak com.lobster.auto-follow-up failed to start: {}` 的报错，能看到 `[Auto Follow-up] main IPC handler registered successfully` 与 `Auto Follow-up 连击插件已成功启动！` 的正常启动日志。
+
+## 2026-05-21 Windows `\\?\` 路径前缀导致 Codex++ "恢复对话失败" 假阳性 toast 持续闪烁
+
+- **现象**：Codex++ 会话中持续弹出红色错误 toast `恢复对话失败 — cannot resume running thread ... with stale path: requested 'C:\...\rollout-xxx.jsonl', active '\\?\C:\...\rollout-xxx.jsonl'`，反复闪烁干扰使用。普通 Codex 无此问题。
+- **误判点**：容易以为是 session 文件损坏或路径确实不一致。实际上两个路径指向完全相同的物理文件，唯一区别是 `\\?\` 前缀。也容易误以为问题在 Codex++ Electron/JS 层，实际根因在 Codex CLI Rust 二进制。
+- **真实根因（三层叠加）**：
+  1. **Junction 中转**：`Start-CodexPlusPlus.ps1` 在 L55-59 创建了 `CodexPlusPlusProfile\AppData\Roaming\Codex\.codex` → `CodexPlusPlusProfile\.codex` 的 Junction。Codex app Electron 层通过 `--user-data-dir` 派生出 Junction 路径来访问 `.codex`。
+  2. **Rust `canonicalize()` 解析**：Codex CLI (Rust) 在存储 session rollout 路径时调用 `std::fs::canonicalize()`，该函数在 Windows 上会解析 Junction 得到真实目标路径，并自动加上 `\\?\` 扩展路径前缀。
+  3. **字符串比较不匹配**：前端 resume 时用普通路径（`C:\...\rollout.jsonl`），CLI 内部存的是 canonicalize 后的路径（`\\?\C:\...\rollout.jsonl`）。CLI 做字符串比较发现不一致，返回 "stale path" 错误，前端渲染为中文 toast `恢复对话失败`。
+- **关键代码定位**：
+  - 前端 resume 调用：asar `main-sqI8jfJr.js` Line 65 的 `resumeThread(e.id, {cwd: e.cwd, path: e.path})`。
+  - `rolloutPath` 构建：asar Line 108 的 `path.join(c, 'rollout-${o}.jsonl')`。
+  - i18n 键：`localTaskRow.resumeError.v2` → `恢复对话失败{br}{error}`。
+  - Junction 创建：`Start-CodexPlusPlus.ps1` Line 59 的 `New-Item -ItemType Junction`。
+- **修复动作**：在 Codex++ runtime preload 第一现场注入 `startStalePathGuard()`：
+  1. 修改 `C:\Users\Administrator\AppData\Roaming\codex-plusplus\runtime\preload\index.js`（部署），在 `boot()` 末尾调用 `startStalePathGuard()`。
+  2. 同步修改 `C:\Users\Administrator\.codex-plusplus\source\packages\runtime\src\preload\index.ts`（源码）。
+  3. Guard 逻辑：500ms `setInterval` + `TreeWalker` 扫描 DOM 文本节点，检测包含 "stale path" 的 toast；提取反引号内路径，去掉 `\\?\` 前缀后比较——一致则为假阳性，自动关闭 toast（点击 close 按钮或 `display:none` 移除）。
+  4. 安全边界：只过滤路径完全一致的假阳性，真正的 stale path 错误（路径确实不同）保留原始行为。
+- **为什么不改 Junction 或启动脚本**：Junction 是 Codex++ 隔离架构的核心机制，不能移除。即使不用 Junction，Rust `canonicalize()` 仍会加 `\\?\` 前缀，问题依旧。根治需改 Codex CLI Rust 代码（非 Codex++ 可控范围），preload 层拦截是当前最精准的缓解。
+- **验收证据**：
+  - `node --check` 两边 preload 文件通过。
+  - 重启 Codex++ 后，`loader.log` 或 DevTools console 应出现 `[codex-plusplus preload] stale-path-guard started`。
+  - 红色 toast 不再闪烁；如有短暂弹出应在 500ms 内被自动关闭。
+
+## [ADDED] 2026-07-17 Codex++ 启动链复合故障：迁盘残留、脚本语法、沙箱预检与配置互锁
+
+- **现象**：重启电脑后 Codex++ 无法进入对话页，命令窗口出现“尝试对 `FileSystem` 提供程序执行 `InitializeDefaultDrives` 操作失败”；界面反复提示“未完成设置”，按钮点击无效。后续启动器还出现 PowerShell `ParserError`，报错位置在 `Start-CodexPlusPlus.ps1` 的 UAC 提示文本附近。修复过程中又反复弹出 ChatGPT 沙箱权限窗口。
+- **事故背景**：`C:\Users\Administrator\openclaw-mono` 已迁到 `D:\openclaw-mono`。旧 C 盘路径可能残留在启动脚本、计划任务、Junction、配置或缓存中，但不能看到迁盘就直接认定它是所有症状的唯一根因。
+- **错误尝试与误判点**：
+  1. 把“未完成设置”、`InitializeDefaultDrives`、UAC 不弹或反复弹、页面点不动都当成同一个权限问题。
+  2. 直接给所有进程“最大权限”。这不能修复脚本语法、旧路径、旧应用缓存或 Codex++ 注入标记，反而会放大误操作范围。
+  3. 只改普通 Codex 的 `C:\Users\Administrator\.codex`。Codex++ 使用独立的 `CodexPlusPlusProfile`，两套配置不能混改。
+  4. 在启动脚本尚未通过 Parser 检查时继续调 UAC。PowerShell 在解析阶段已经退出，后面的提权和修复逻辑根本没有执行。
+- **真正问题分层**：
+  1. **脚本语法层**：启动器提示字符串的引号边界损坏后，PowerShell 报 `UnexpectedToken`，Codex++ 不可能继续启动。当前脚本必须先通过 `[System.Management.Automation.Language.Parser]::ParseFile()`。
+  2. **路径层**：迁盘后要扫描旧的 `C:\Users\Administrator\openclaw-mono` 引用，并分别判断是有效兼容入口、历史备份，还是仍在运行链上的陈旧路径；不能只删目录、不改消费方。
+  3. **应用版本层**：`%TEMP%\codex_exe_path_cache.txt` 曾长期缓存旧版应用路径，导致系统已经升级，Codex++ 仍启动旧版。
+  4. **注入与沙箱层**：新版应用副本第一次被 Codex++ 使用前必须执行 repair。应用更新可能让 loader marker 或 Windows sandbox marker 失效，启动器应在 UI 打开前做一次幂等预检；需要提权时只弹一次 UAC，不应在多个子步骤重复请求。
+  5. **配置互锁层**：`session-path-normalizer` 被关闭时，启动链后段仍强制检查它，形成“前面禁用、后面要求启用”的自相矛盾。最终应保持该 tweak 启用；诊断结束后关闭 Safe Mode。
+- **正确修复顺序**：
+  1. 先解析 `Start-CodexPlusPlus.ps1`，有语法错误就停止，不进入 UAC、repair 或启动阶段。
+  2. 用 `Get-AppxPackage -Name OpenAI.Codex` 取得当前官方版本和 `InstallLocation`，不要写死 WindowsApps 版本目录。
+  3. 校验 `%TEMP%\codex_exe_path_cache.txt`。缓存路径不存在或版本号与当前 Appx 不同，就重新解析并刷新缓存。
+  4. 检查旧 C 盘仓库路径在活动脚本、计划任务和配置中的引用，逐项改到 `D:\openclaw-mono`；历史日志和备份不作为活动故障处理。
+  5. 如果 Codex++ `state.json` 记录的 app root 与本次选择的 app root 不同，先对新版应用执行 `codexplusplus repair --app <appRoot> --quiet`，再跑 injection guard。
+  6. Windows sandbox 预检只允许一次 UAC-backed repair；用户在唯一一次弹窗中确认后，后续步骤必须复用结果。
+  7. 确认 `codexPlusPlus.safeMode=false`、`co.Arconte112.session-path-normalizer.enabled=true`，再启动 UI。
+- **快速排查命令**：
+  ```powershell
+  $script = 'C:\Users\Administrator\.codex-plusplus-config\Start-CodexPlusPlus.ps1'
+  $tokens = $null; $errors = $null
+  [System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$tokens, [ref]$errors) | Out-Null
+  $errors | Select-Object Message, Extent
+
+  Get-AppxPackage -Name OpenAI.Codex | Select-Object Version, InstallLocation
+  Get-Content "$env:TEMP\codex_exe_path_cache.txt" -ErrorAction SilentlyContinue
+  rg -n --hidden --glob '!*.log' --glob '!*.bak' 'C:\\Users\\Administrator\\openclaw-mono' 'C:\Users\Administrator\.codex-plusplus-config' 'D:\openclaw-mono\.agents'
+  ```
+- **当前验收证据**：`Start-CodexPlusPlus.ps1` Parser 错误数为 `0`；官方包为 `26.715.2305.0`；Codex++ 配置为 Safe Mode 关闭、`session-path-normalizer` 启用。
+- **防复发规则**：启动器必须按“语法检查 → 动态解析最新版 → 版本感知缓存 → 必要时 repair → 一次沙箱预检 → injection guard → 启动”执行。不要用“全局最大权限”代替这条链路。
+
+## [ADDED] 2026-07-17 点击本地 `file://` HTML 后 Codex++ 主进程退出
+
+- **现象**：Codex++ 可以正常进入界面，但点击对话中生成的本地 HTML 后立刻退出；重启后再次点击同一文件可稳定复现。
+- **无效尝试**：
+  1. 添加 Chromium 详细日志只能补证据，不能修复崩溃。
+  2. 加 `--disable-gpu` 后仍以相同异常地址崩溃，排除 GPU 为主因。
+  3. 禁用 `OwlWebViewEnhancements` 后内置 WebView 仍创建并崩溃，排除该功能为主因。
+  4. Safe Mode 下不加载 Codex++ preload 和 tweaks，旧版仍崩溃，排除 Codex++ 插件为主因。
+  5. 只检查 Codex++ 框架更新没有用。本次 Codex++ 已是最新版 `1.0.0`，真正需要更新的是底层 Codex 应用。
+- **决定性 A/B 证据**：
+  1. 旧版 Codex `26.707.12708.0` 打开本地 `file://` HTML 时稳定崩溃；Crashpad 转储为 `0xC0000005`，固定落在 `chrome.dll + 0x2E08F46`。
+  2. 旧版加 `--disable-gpu` 后，转储异常地址完全一致。
+  3. Chromium 日志在崩溃前记录 `Electron sandboxed_renderer.bundle.js script failed to run`、`TypeError: object null is not iterable`，随后进入 `FileURLLoader::Start: file:///...html`。
+  4. 升级到底层 Codex `26.715.2305.0` 后，同一 HTML 正常打开；新版仍可能记录 sandbox bundle 错误，但不会再导致主进程崩溃，且没有新增 Crashpad 转储。
+- **真实根因**：旧版 Codex `26.707` 内置 Electron/Chromium 在本地 `file://` 加载链上发生 `chrome.dll` 访问冲突。触发入口是打开本地 HTML，但根因不在 HTML 内容、GPU、Codex++ tweak 或 Safe Mode。
+- **修复动作**：
+  1. 升级官方 Codex 应用到当前新版。
+  2. 让启动器比较 Appx 版本与 `%TEMP%\codex_exe_path_cache.txt`，版本不匹配时不得继续返回旧缓存。
+  3. 将当前官方包同步到 Codex++ `store-apps`，优先选择最高版本的 `ChatGPT.exe`，旧品牌版本才回退到 `Codex.exe`。
+  4. 对新版 app root 执行 Codex++ repair；否则 injection guard 可能因 loader marker 缺失而拒绝启动。
+  5. 移除临时 Chromium 详细日志参数，恢复正常启动；保持 Safe Mode 关闭和 `session-path-normalizer` 启用。
+- **快速排查顺序**：
+  ```powershell
+  Get-AppxPackage -Name OpenAI.Codex | Select-Object Version, InstallLocation
+  Get-CimInstance Win32_Process | Where-Object Name -eq 'ChatGPT.exe' | Select-Object ProcessId, ExecutablePath, CommandLine
+  Get-Content 'D:\CodexPlusPlusProfile\chrome-debug.log' -Tail 200
+  Get-Content 'D:\CodexPlusPlusProfile\AppData\Roaming\codex-plusplus\log\main.log' -Tail 200
+  Get-ChildItem 'D:\CodexPlusPlusProfile\Crashpad\reports' -Filter *.dmp | Sort-Object LastWriteTime -Descending | Select-Object -First 5 LastWriteTime, Length, FullName
+  ```
+ - **证据文件**：
+   - `D:\CodexPlusPlusProfile\chrome-debug.log`
+   - `D:\CodexPlusPlusProfile\AppData\Roaming\codex-plusplus\log\main.log`
+  - `D:\Temp\codexpp-diagnostic-evidence.json`
+  - `D:\Temp\codexpp-diagnostic-receipt.json`
+- **防复发规则**：Codex++ 启动器不能把“文件存在”当成缓存可用，必须同时校验 Appx 版本；检测到 app root 变化时先 repair 再启动。以后遇到 `file://` 闪退，先做“旧版/新版应用 A/B + Crashpad 异常地址对比”，不要先禁用一圈 tweaks。
+
+## 2026-08-31 Codex++ 侧边栏“最近”列表底部持续转圈圈（Loading Spinner）
+
+- **现象**：Codex++ 侧边栏“最近”列表底部持续出现转圈动画（`<div class="motion-safe:animate-spin">`），无论是否有历史会话或全部归档后显示“无聊天”，转圈圈始终常驻不退。
+- **误判点 1（归因偏差）**：初次排查误以为仅是 `https://chatgpt.com/backend-api/conversations` 远端接口在 API Key 模式下挂起未解决。实际上哪怕网络请求被拦截，前端列表依然转圈。
+- **误判点 2（判定失效）**：初版 `isApiKeyAuthMode` 仅匹配了 `auth_mode = "apikey"`，忽略了实际生效的 `model_provider = "cm"` 及 `auth.json`，导致守卫未注入。
+- **真实根因（两层叠加）**：
+  1. **状态机判定 Bug**：本地会话目录缓存（`catalogReader`）在计算分页状态 `getPageState()` 时，由于本地模式下未标记 `exhausted: true`，计算出来的 `hasMore` 状态永远为 `true`。
+  2. **无限滚动占位挂载**：Codex 侧边栏列表（`FDc`）采用 `paginationMode: "infiniteScroll"`，在 `hasMore: true` 驱动下通过 `<EDc />` 挂载了无限滚动 loading 占位 spinner。在单区域或末尾区域下该元素暴露在视口中，形成永久转圈假象。
+- **修复动作**：
+  1. 在 `packages/runtime/src/api-key-recents-guard.ts` 中增强 `isApiKeyAuthMode`，完整支持 `config.toml`（`model_provider = "cm"`）与 `auth.json`。
+  2. 在 `api-key-recents-guard.ts` 的 page-world `fetch` 拦截中，对 `chatgpt.com/backend-api` 返回合法的空数据 Response（`{ items: [], total: 0, limit: 20, offset: 0, has_missing_conversations: false }`），使 `catalogReader` 判定 `nextCursor: null` 并将 `hasMore` 优雅置为 `false`，让底端 Spinner 自然卸载（return null），彻底消灭转圈圈且 CPU 0%。
+  3. 在 `main.ts` 中监听 `app.on("window-all-closed", () => app.quit())` 与 `app.on("second-instance", ...)`，确保当用户点击右上角 `X` 关闭所有窗口时，应用后台进程 100% 干净退出，避免后台残留或二次唤醒时的渲染器冻结与卡死。
+  4. 同步更新单测 `api-key-recents-guard.test.ts` 并构建部署最新 runtime。
+- **验收证据**：
+  1. 窗口关闭后实测 `Remaining Codex++ processes after window.close(): 0`。
+  2. 再次启动实测前台主窗口秒开（`MainWindowHandle: 3541200, Responding: True`，CPU 仅 3 秒），`visibleSpinners: 0`。
+  3. `Test-CodexIsolation.ps1` 报告 `OVERALL: PASS`。
+  4. `Protect-CodexPlusPlusGovernance.ps1` 报告 `CODEXPP_LIFECYCLE_CONTRACT_PASS`。
+- **防复发规则**：
+  1. **避免粗暴 CSS 隐藏**：不要使用 `display: none` 隐藏被 `IntersectionObserver` 监听的无限滚动占位，否则会引发 React Render Loop 死循环；优先在数据层返回合法的空数据响应让状态机自愈收敛。
+  2. **双层前台唤醒通道**：从最小化唤醒 Electron 应用时，严禁仅依赖 Win32 底层 `ShowWindow`（会绕过 Chromium 视口激活导致渲染管线冻结与输入失灵）。必须先通过主进程内部通道（如 HTTP `/wake` 或 IPC）触发 `win.restore() / win.show() / win.focus() / webContents.setBackgroundThrottling(false)`，再配合 Win32 `SetForegroundWindow`。
+  3. **唤醒目标精准过滤**：唤醒时必须精准按窗口尺寸（`width >= 500 && height >= 400`）只唤醒 Primary 主窗口，严禁遍历 `getAllWindows()` 盲目 `show()`，防止将隐藏的 Avatar/老宠物/Helper 辅助悬浮窗一起带出来。
+
+## 2026-09-04 官方静默更新后 Codex++ 启动闪退（Electron Asar 完整性校验与 chrome.dll Fuse 4 漏翻）
+
+- **现象**：点击桌面 `Codex++ 启动.lnk` 启动一闪而过/打不开。
+- **误判点**：由于刚刚修改过 `config.toml` 切换官方账号模式，容易直觉误判为“改配置改坏了”。
+- **真实根因**：
+  1. 微软商店恰好静默更新了 `OpenAI.Codex_26.901.4073.0_x64__2p2nqsd0c76g0` 底层包。
+  2. 新版 Electron 在 Windows 下将核心框架逻辑编译入 `chrome.dll`，而不是 `ChatGPT.exe`。
+  3. `platform.ts` 中的 `locateWin` 仅把 `ChatGPT.exe` 作为 `electronBinary`，导致 `fuses.ts` 在 `ChatGPT.exe` 中未找到 sentinel 字符串 `dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX`，使得 `chrome.dll` 中的 Fuse 4（`EnableEmbeddedAsarIntegrityValidation`）保持默认值 `1`（开启）。
+  4. 当应用加载被打入 Codex++ tweaks 的 `app.asar` 时，Electron 底层 C++ 直接抛出致命错误：`FATAL:third_party\electron\shell\common\asar\asar_util.cc:143 Integrity check failed for asar archive`，进程瞬间崩溃退出。
+- **修复动作**：
+  1. 定位并精准修改 `chrome.dll` 中 Fuse 4 为 `0`（关闭 asar 完整性校验）。
+  2. 修复 `packages/installer/src/platform.ts` 中的 `locateWin`，若存在 `chrome.dll` 则优先将其作为 `electronBinary`，并重新编译 `codex-plusplus` 构建产物，根治未来更新或 repair 重新生成镜像时的 Fuse 丢失。
+- **验收证据**：
+  1. `chrome.dll` Fuse 4 确认为 `0`。
+  2. 桌面 `Codex++ 启动.lnk` 启动成功，所有主/子进程正常存活，`Responding: True`，CPU 稳定无假死。
+- **防复发规则**：
+  1. 遇到启动一闪而过、打不开且无任何控制台输出时，直接通过 PowerShell 前台运行主程序并捕获 stderr/stdout（带 `--enable-logging`）。
+  2. 记住 Windows 上 Electron 新版的 Fuse sentinel 在 `chrome.dll` 中，`platform.ts` 必须同时覆盖 `chrome.dll`。
+## 2026-09-07 Codex++ 启动无窗口假死、桌面穿透失败、唤醒判据死锁与认证双模式混淆
+
+- **现象**：
+  1. 用户反映双击桌面 Codex++ 启动.lnk 没反应/打不开。
+  2. Agent 介入排查时，误启动了原生 Codex（C:\Program Files\WindowsApps\...），或通过后台启动的进程滞留在 Agent 虚拟沙箱桌面（WinSta0\exebox-*），用户物理屏幕完全看不到。
+  3. 用户尝试再次双击桌面快捷方式时，启动脚本探测到后台进程存在并返回“已唤醒现有主窗口”，实际物理屏幕上什么都没弹出来（点击被吞）。
+  4. Agent 看到自检工具报 plus auth 失败，误将用户原本在使用的「官方账号 OAuth / 密码登录模式」强行改写为「CodexManager 代理中转模式」，导致登录方式被破坏。
+- **误判点**：
+  1. **误判 1（屏幕上的 Codex 是谁）**：用户屏幕上一直停留的是原生 Codex（C:\Program Files\WindowsApps\OpenAI.Codex_...，PID 13856），Agent 以为已经拉起了 Codex++，用户看到官方账号以为是启动错了版本。
+  2. **误判 2（唤醒接口成功=窗口已出现）**：Start-CodexPlusPlus.ps1 中的 Show-CodexPlusPlusRunningMainWindow 之前在无窗口句柄时直接返回了 
+eturn $wakeEndpointOk（因为后台进程响应了 HTTP /wake），导致未在当前桌面成功展示窗口的情况下谎报唤醒成功，阻止了正常的残留清理与重新拉起流程。
+  3. **误判 3（Codex++ 只能走代理模式）**：误以为 Codex++ 必须配置 model_provider = "cm"。事实上 Codex++ 支持**官方账号登录模式**与**CodexManager 代理模式**双轨运行。当用户使用官方账号时，config.toml 注释 model_provider、uth.json 保留 uth_mode = "chatgpt" 是完全合法的！
+- **真实根因（三层叠加）**：
+  1. **Win32 桌面工作站隔离（Desktop Station Trapping）**：Agent 在沙箱环境（PowerShell）中执行 Start-Process 时，新进程默认继承 Agent 所在的非交互式虚拟桌面（WinSta0\exebox-*），而非用户的物理交互桌面（WinSta0\Default）。进程在后台持有端口 48763 和 Profile 锁，但在物理屏幕上完全隐形。
+  2. **唤醒判据短路死锁**：当后台存在滞留的虚拟桌面进程或无窗残留时，桌面脚本调用 Show-CodexPlusPlusRunningMainWindow。由于当前物理桌面上没有有效窗口句柄（$bestHandle -eq 0），却因 HTTP /wake 成功返回了 $true，直接跳过了设计内的清理重启机制（$codexPlusPlusResidueRecovery），造成用户无论点多少次快捷方式都被“静默吞掉”。
+  3. **ASAR 完整性 Fuse 4 再次漏翻**：底层新版 chrome.dll 的 Fuse 4（EnableEmbeddedAsarIntegrityValidation）在微软商店静默更新后默认为开启状态，导致加载打入 tweaks 的 asar 瞬间崩溃退出。
+- **修复动作**：
+  1. **修复唤醒兜底判据**：在 Start-CodexPlusPlus.ps1 中恢复严格判定：当 $bestHandle -eq [IntPtr]::Zero（物理桌面找不到主窗口句柄）时，**必须返回 $false**，确保脚本正确落入设计内的残留清理与重新拉起逻辑，绝不吞点击。
+  2. **跨桌面穿透启动**：Agent 在需要协助用户拉起 Codex++ 时，必须通过 Win32 CreateProcess 明确指定 STARTUPINFO.lpDesktop = @"WinSta0\Default"，将进程直接投递到物理用户的交互桌面，或明确让用户自行通过桌面快捷方式打开。
+  3. **翻转 chrome.dll Fuse 4**：使用 installer 内置 fuses 工具将 store-apps 下 chrome.dll 的 Fuse 4 从 on 改为 off，并在 state.json 记录 useFlipped: true。
+  4. **认证双模式固化与恢复**：恢复用户的官方账号模式（# model_provider = "cm"，uth_mode = "chatgpt" 与 OAuth 缓存恢复）。更新自检契约与 Skill 指南，禁止将官方账号模式误判为损坏。
+- **验收证据**：
+  1. ChatGPT.exe 进程（PID: 96056）运行在 WinSta0\Default，窗口句柄 86580196 正常显示并置顶前台。
+  2. 认证态确认为官方账号模式（uth_mode: "chatgpt"，ccount_id: 25fdb893-...）。
+  3. 桌面快捷方式二次点击能够正确唤醒并置顶当前主窗口。
+- **防复发规则**：
+  1. **禁止盲目改写认证模式**：排查 Codex++ 认证前先读取 config.toml 首行注释；若标明“官方账号模式”，切勿强制添加 model_provider = "cm"。
+  2. **Agent 严禁裸启动 GUI 进程**：Agent 在后台排查时，若需启动前端界面，必须显式绑定 WinSta0\Default，严禁让 GUI 进程滞留在 Agent 沙箱桌面成为僵尸进程。
+  3. **窗口唤醒以物理句柄为准**：没有在当前桌面找到可呈现的主窗口句柄（estHandle != 0）时，绝不可宣称唤醒成功，必须清理重建。
+
+## 2026-09-09 DeepSeek 连续执行中断、协议适配旧进程与可视化目录 ENOENT
+
+- **用户现象**：Codex++ 使用 DeepSeek 时先返回一句分析，约 18 秒后自动结束，不继续执行工具；历史版本曾尝试把可视化目录写入已退役的 C Profile 路径，形成 `ENOENT`。该 C 路径只保留作事故证据，当前写入必须使用 D canonical。
+- **第一阶段误判**：只看 sanitizer 生成的 SSE 文件完整，就把问题归为 DeepSeek 行为或 GPT/Luna 并发；没有先确认当前服务进程是否已加载修改后的代码。
+- **第一阶段决定性证据**：
+  1. `logs_2.sqlite` 出现 `unhandled responses event: "response.reasoning_text.done"`、`failed to parse ResponseItem from output_item.added/done`，随后 `needs_follow_up=false`、`turn/completed`。
+  2. `http://127.0.0.1:15740/health` 只返回 `status/proxy/port`，说明仍是旧 sanitizer 进程；源文件修改本身没有改变已运行的 LocalSystem 服务。
+  3. 旧 SSE 中 `custom_tool_call` 使用 `arguments`，没有 `custom_tool_call_input.delta/done`。
+- **协议根因**：Codex++ 26.901 解析器使用 `reasoning_summary_*` 事件族；`custom_tool_call` 要使用 `input`，流式输入要发送 `response.custom_tool_call_input.delta` 与 `response.custom_tool_call_input.done`。旧适配器发出的 `reasoning_text.done` 和 `arguments` 让客户端丢弃工具项，并把本轮误判为正常结束。
+- **协议修复**：
+  1. `C:\Users\Administrator\.cc-switch\sanitizer\codex-id-sanitizer-proxy.js` 将推理事件改成 `reasoning_summary_part.*` / `reasoning_summary_text.*`，推理 ID 使用 `rs_`。
+  2. `custom_tool_call` 改用 `input`；补齐 `custom_tool_call_input.delta/done`；历史请求重放读取 `input`。
+  3. 修改后必须以管理员权限重启 `CodexIdSanitizer`，并用 `/health` 验收当前 `adapter=responses-summary-v3-custom-input-exec-command-v1`。
+- **第二阶段决定性证据**：Node 在 C public Junction 路径下对任何不存在的新目录执行 `fs.mkdirSync(...,{recursive:true})` 都返回 `ENOENT`；同一目录改用 `D:\CodexPlusPlusProfile` canonical 路径创建成功。已有目录通过 C 路径可读，所以单独补某个 TASK_ID 只能掩盖问题。
+- **路径根因与修复**：
+  1. （历史记录）旧启动链曾让 Electron 经过 C 盘重解析入口；2026-09-22 已将 Electron user-data-dir 与 `CODEX_HOME` 一并固定到物理 D。
+  2. `Sync-CodexPlusPlusConnectors.ps1` 的 TargetRoot 改为 `D:\CodexPlusPlusProfile\AppData\Roaming\Codex`；单文件备份前创建父目录。
+  3. 可视化目录以 `D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex\visualizations\YYYY\MM\DD\TASK_ID` 为实际写入验收路径。
+- **启动链验收**：（历史记录）正常 `Start-CodexPlusPlus.ps1 -Restart -SkipSessionPathTest` 曾通过 connector sync、OpenCLI adapter sync、sandbox ready、one-shot maintenance，`START_EXIT=0`；当前命令行必须改为物理 D user-data-dir。
+- **独立协议回归**：通过 `15740` 发起 DeepSeek 工具请求得到 HTTP 200，事件包含 `response.reasoning_summary_part.added`、`response.reasoning_summary_text.delta/done`、`response.custom_tool_call_input.delta/done`、`response.completed`，输出包含 `reasoning,custom_tool_call`。
+- **防复发规则**：
+  1. “一句话后结束”先查 `/health` 适配器版本，再查 parser 日志；旧版本服务未重载时不继续改模型、密钥或提示词。
+  2. 内部新目录写入统一走 D canonical 根；不要按 TASK_ID 逐个补目录。
+  3. 最终验收必须使用正常启动链，不以 `-SkipConnectorSync` 或 `-SkipOpenCliAdapterSync` 作为长期修复；若同步报 ENOENT，先检查 TargetRoot 是否仍为 D 物理目录。
+
+## 2026-09-09 DeepSeek 读取 DOCX 任务的 exec_command 参数不兼容与 missing output 循环
+
+- **用户现象**：用户要求优化桌面 `破障.docx` 到约 850 字并进行网络查重；DeepSeek 执行约 9 分钟没有结果，过程中反复出现 exec/exec_command 执行失败。
+- **决定性证据**：
+  1. 首个工具项为 `ToolCall: exec_command {"cmd":"powershell ..."}`。
+  2. Codex++ router 立即返回 `Fatal error: tool exec_command invoked with incompatible payload`。
+  3. 随后所有轮次反复返回 `Custom tool call output is missing for call id: ctc_9876092b998e40a7847dd07c`，消息数从 4、6、9 持续增长到 130+，形成长时间重试。
+  4. `needs_follow_up=true` 只说明模型还想继续，不能证明工具结果已回传；首个 call id 缺 output 时，后续轮次都建立在坏上下文上。
+- **真实根因**：Codex++ 26.901 的本地 shell 路由器要求 `exec_command` 使用 `command`、`timeout_ms`、`working_directory`、`env`、`user` 字段；第三方模型按较短提示返回 `cmd`，导致 payload 反序列化失败。前一次工具没有生成 output，Codex++ 继续向模型发送新请求，造成无效循环。
+- **修复动作**：
+  1. 在 `codex-id-sanitizer-proxy.js` 中仅对 `exec_command` 做窄兼容映射：`cmd -> command`、`timeout -> timeout_ms`、`cwd -> working_directory`。
+  2. adapter 版本提升为 `responses-summary-v3-custom-input-exec-command-v1`，通过 `/health` 确认服务已重载。
+  3. 重启 LocalSystem sanitizer 服务和 Codex++，清除旧线程中缺失 output 的坏 call 状态。
+- **独立回归**：通过 `15740` 发起 DeepSeek `exec_command` 回归，HTTP 200，返回 `response.custom_tool_call_input.done`、`response.completed`，工具输入已经是 `{"command":"echo CODEX_SHAPE_OK"}`。
+- **防复发规则**：
+  1. 看到 `incompatible payload` 时先查首个工具调用的字段名，不要让模型继续重试。
+  2. 看到 `Custom tool call output is missing for call id` 时立即结束当前坏轮次并新建任务；先修复首个工具 payload，再评估后续模型行为。
+  3. DOCX 任务验收必须分成“文件存在/可读 → 文本提取 → 内容改写 → 字数统计 → 输出文档 → 查重说明”六个证据点，不能以模型持续生成或请求数增长作为进度证明。
+
+## 2026-09-10 DeepSeek 直接工具名落到代码模式别名
+
+- **用户现象**：上一轮参数归一化已加载，但新任务仍在第一次 shell 调用处报 `tool exec_command invoked with incompatible payload`；随后 `Custom tool call output is missing` 持续重复。日志时间为 2026-09-10 17:17:13–17:21:12（本地时间）。
+- **决定性证据**：
+  1. sanitizer `/health` 已返回 `responses-summary-v8-exec-toolcallitem-v1`，说明不是旧进程未重载。
+  2. 原始响应项的工具形状是 `type=custom_tool_call, name=exec_command, input={"cmd":...,"workdir":...}`；同一轮 `mcp__node_repl__js` 直接报 `unsupported custom tool call`。
+  3. 请求给 DeepSeek 的工具契约只有代码模式 custom tool `exec`；未知名称落入 custom fallback 后由本地代码模式路由处理，故不会进入标准 shell/function 参数解析。
+- **真实根因**：这是工具能力名称/责任层错位，不是 `cmd` 与 `command` 的单字段问题。DeepSeek 把宿主内部工具名直接当成 custom tool 名称返回，适配器没有把它们收敛回实际可调用的 `exec` 入口。
+- **修复动作**：
+  1. `codex-id-sanitizer-proxy.js` 升级为 `responses-summary-v9-exec-alias-code-mode-v1`。
+  2. 只对 `exec_command` 生成 `const r = await tools.exec_command(payload); text(...)` 的 `exec` 代码模式输入；只对 `mcp__node_repl__js` 生成带 `nodeRepl.write -> text` 的 `exec` 输入，其他 custom tool 不改名。
+  3. 管理员重启 LocalSystem `CodexIdSanitizer`，`/health` 已确认 v9；`node --check` 与别名单元序列通过。
+- **独立回归**：2026-09-10 17:26 通过 `15740/v1/responses` 发起 DeepSeek 请求，HTTP 200，事件同时包含 `response.custom_tool_call_input.done`、`response.completed`，输出工具名为 `exec`，输入为 `tools.exec_command({"cmd":"echo CODEX_ALIAS_OK"})` 包装代码。
+- **剩余验收**：当前历史坏线程仍保留缺失 output 的上下文；必须重启/新建 Codex++ 任务，确认 `exec_command` 真正执行并收到 tool output，再把本次适配器修复标为完整闭环。
+
+## 2026-09-11 Codex++ 更新后界面假死与插件 marketplace 为空
+
+- **用户现象**：Codex++ 窗口存在但点击无效；插件目录实际存在，UI/plugin list 却像没有插件。
+- **决定性证据**：旧固定 store 包为 `26.903.8094.0`，系统 `Get-AppxPackage -Name OpenAI.Codex` 已是 `26.903.9818.0`；主进程累计 CPU 长时间增长。`logs_2.sqlite` 同时反复记录 `remote installed plugin bundle sync failed`（API key 不支持 ChatGPT 远程目录）和 `401 Unauthorized`。三个本地 marketplace source 使用 `\\?\C:\...CodexPlusPlusProfile`，而内部 `CODEX_HOME` 已切到 D canonical；用 D 覆盖读取后 bundled marketplace 立即恢复可见。
+- **真实根因**：官方 Appx 更新、Codex++ 固定 store、tweak/loader、插件 source 和连接器同步不是同一条收敛链；旧重解析入口可读取旧文件但不保证 Rust/plugin loader 能解析 marketplace，API key 又不能访问远程插件目录。`Responding=True` 不是点击可用证明。
+- **修复动作**：使用 `Start-CodexPlusPlus.ps1 -Restart -ForceRepair` 通过唯一 Sync owner 镜像当前官方包并验证注入；将 marketplace source 校回 D canonical；关闭 API key 模式的 `features.remote_plugin`；通过官方 CLI 安装恢复 `browser`、`unified-computer-use`、`visualize`、`codex-app-tools`；维护后补跑 connector/OpenCLI sync；重启后 plugin list 返回 7 个已安装、49 个可用，MCP 目录返回 5 个服务、93 个工具。
+- **防复发规则**：任何 Appx 版本变化、固定 store 缺包、插件列表为空或点击无效，都必须先走 `Get-AppxPackage` → Sync one-shot repair → D canonical marketplace reconciliation → injection/sandbox/projection → connector/OpenCLI sync → plugin list/MCP tool catalog 验收；不得直接 native update、按进程名裸杀、按任务 ID 补目录或擅自切 OAuth。API key 模式下远程插件只能报告“认证边界”，不能宣称已加载；完整启动测试若是 harness 路径误报，不得伪造风险日志。
+
+## 2026-09-22 Kimi K3 工具结果缺少可解析工具名（Responses → Chat Completions 映射）
+
+> 2026-09-23 验收范围纠正：下述 v16-v18 是分阶段修复记录；原五轮脚本使用预置结果，没有实际执行工具，也没有覆盖同一历史的并行调用和跨模型切换。不能把当时的 PASS 外推为全方向可用。有效操作规则以 S34 的工具批次/关联 ID/必填输入契约为准。
+
+- **用户现象**：Codex++ 选择 `kimi-k3` 后，上游返回 `Kimi K3 tool messages need a resolvable tool name`，任务在工具结果回传处停止。
+- **决定性证据**：Codex++ 的 D 盘请求先到 `127.0.0.1:15740/v1`；CodexManager gateway trace 记录请求模型为 `kimi-k3`、上游为 Chat Completions，并返回该错误。共享适配器原先只把 Responses 的工具结果转换成 `role=tool + tool_call_id`，没有传 `name`；而历史消息的 call id 可能带 `msg_`、`ctc_` 或 `fc_` 前缀，导致 Kimi 无法按 ID 或顺序解析工具。
+- **根因**：这是共享协议适配器的消息形状缺陷，不是 D 盘迁移丢失模型目录。D `model_catalog.json`、CodexManager `gateway-models.json`、`config.toml` 和 `15740` 链路均已包含 Kimi；适配器源仍由 C 盘 Host 级 `CodexIdSanitizer` 服务统一承载，D Profile 只消费该端口。
+- **修复动作**：适配器升级为 `responses-summary-v16-kimi-tool-name-v1`；工具结果 ID 按 `fc_` / `ctc_` 规范化，工具名按精确 ID、去前缀别名、前序调用顺序三级解析，并写入 Chat Completions `role=tool.name`。正式启动入口现在拒绝旧适配器版本，避免旧 Node 进程继续接收 Kimi 请求。
+- **独立回归**：`C:\Users\Administrator\.cc-switch\sanitizer\test-kimi-tool-message-name.js` 在本地 loopback upstream 上覆盖 custom/function 两类工具、精确/不可解析 ID 和无工具结果边界，共 4 个用例通过；重启 LocalSystem 后 `/health` 已读到 v16，`CODEX_LIVE_MODEL=kimi-k3 node test-live-deepseek-five-turns.js` 真实完成 5 轮工具调用—结果—下一轮采样（`FIVE_TURN_TOOL_LOOP=PASS TOOL_CALLS=5`）。该 live harness 同时改为读取 D canonical `auth.json` / `config.toml`，不再引用退役 C Profile。
+
+## 2026-09-22 跨模型切换时 GPT 重放旧 reasoning item（store=false 非持久化边界）
+
+- **用户现象**：从 Kimi/DeepSeek 等三方模型切回 GPT-6 后，原会话无法继续，GPT 返回 `Item with id 'rs_...' not found. Items are not persisted when store is set to false`。
+- **真实根因**：上一模型输出的 summary-only `reasoning` 项被 Codex++ 放入下一次 Responses `input`；该项没有 `encrypted_content`，且服务端使用 `store=false`，所以 GPT 端没有可解析的持久化 item。工具 ID 归一化不是这一条错误的主因，但同一跨模型入口也必须同步规范 `call_id`。
+- **修复动作**：v18 请求清洗入口只移除 `store=false` 下不可持久化的 `rs_` reasoning 和对应 `item_reference`；带 `encrypted_content` 的有效 reasoning 保留；同时把 assistant tool call 的 `id/call_id` 与 output 的 `call_id/tool_call_id` 统一为同一 `ctc_` / `fc_` 前缀，保证历史里已有 output 时 GPT 仍能正确配对。
+- **回归**：`test-gpt-switch-reasoning-replay.js` 覆盖 summary-only reasoning 删除、有效加密 reasoning 保留和两侧工具 ID 归一化；Kimi 原有 4 用例继续通过。v18 重载后真实 GPT-6 带旧 `rs_` 历史的 smoke 返回 HTTP 200/completed；最终证据见 `C:\Users\Administrator\.agent\records\evidence\CODEXPP-CROSS-MODEL-TOOL-ID-CLOSURE-S14-20260922.json`。
+- **旧 smoke 的有效范围**：`test-live-gpt-switch-reasoning.js` 只验证带旧 `rs_` 的一次请求不再报 404，不证明工具执行或跨模型闭环。后续执行验收使用 `test-live-model-switch-history.js` 并明确区别隔离测试端口、正式 15740 和原会话 UI。
+
+## 2026-09-23 Kimi 误诊纠正：并行调用批次与 exec 空参数
+
+- **第一事实**：从失败会话及其 fork 来源重建脱敏工具结构，25 次调用均有对应结果，转换后也都有名称；“历史截断导致缺名”没有证据，先前 v19 的声明顺序猜名没有解释该事故。
+- **同输入对照**：原转换把一批四个调用写成四条 assistant 消息，Kimi 返回相同 `resolvable tool name` 错误；只合并为一条 assistant 的 `tool_calls` 数组后，真实上游 HTTP 200 并返回测试标记。根因在批次边界，不是用户历史丢失。
+- **空输出事实**：受影响会话最近连续 30 次 `exec` 输入为 `{}`，各自输出都是 0 秒空执行。工具声明转换用了空参数对象，诱导 Kimi 发空参数；不能据此认定会话输出通道损坏，也不能要求用户贴全文或重开任务绕开。
+- **源头修复**：同批工具合并、按 opaque `call_id` 回接结果、item ID 独立处理；自由文本 custom 工具声明必填字符串 `input` 并双向还原。空 exec 明确失败，不伪造执行成功；不从多工具声明顺序猜历史工具名。
+- **验证不变量**：用真实失败结构、并行混合工具、乱序结果、GPT 的不同 item ID/call ID、本地实际工具执行与下一轮结果消费验证；假结果串行五轮和单次 HTTP 200 均不足。源码、加载版本、API 回放和原 UI 分别记录，未覆盖部分不得写 PASS。
+- **本轮证据**：[模型适配验证-20260923.json](模型适配验证-20260923.json)；独立真实上游的四模型 13 轮/12 个方向和中文文件读回通过。正式服务版本另行核实；旧 Qwen 余额报错不得当成当前不可用的依据。
+
+## 2026-09-23 Codex++ Kimi 会话在阶段进度后正常结束一轮
+
+- **用户现象**：用户期望 Kimi 按已讨论的多步方案继续执行；会话在完成一批工具读取、汇报现状并提到下一项检查后停在该条助手回复。
+- **证据与定性**：Codex++ 任务 `01a0c946-3798-73e2-b603-5a8e0667bec1` 中的 Kimi turn `01a0cbcf-5903-73d2-9801-97d8702d61ec` 有 4 条 CommandExecution，均完成并收到非空输出；该 turn 的 task_complete 没有 error。该样本未显示传输、工具输出或 Kimi 适配协议故障；它显示的是助手回合正常结束而用户的整体多步目标尚未验收。单例不足以把行为泛化为所有模型的提示词问题。
+- **模型范围**：此观察只属于当时选择 Kimi 的 Codex++ 会话；不改变 GPT、DeepSeek、Qwen 或其他 Host 的通用执行规则。后续若同一 Kimi 任务再次发生，应以当轮工具输出、完成事件和仍未满足的用户验收条件复核，再决定是否调整 Kimi 专用规则。
+- **处理边界**：没有修改任务历史、认证、适配器或 L0 全局行为。既有 turn 保持原样，Kimi 针对性后续处理仅在证据支持时进入本 Skill。
+
+## 2026-09-23 Kimi Chat Completions 终止原因被适配器吞掉
+
+- **第一事实**：任务 `01a0c946-3798-73e2-b603-5a8e0667bec1` 的多个 Kimi 回合都由 Host 收到 `response.completed` 后写入 `task_complete`；旧适配器的 `finishChatSse()` 无条件发 `response.completed`，没有读取 Chat Completions 的 `choices[0].finish_reason`。
+- **根因**：协议转换把 `stop`、`tool_calls`、`length` 和 `content_filter` 归并成同一种 Responses 结束状态。若上游因输出上限或内容过滤结束，Codex++ 会把它看成正常完成，用户只看到几分钟后自动停止，日志也没有可区分的原因。
+- **修复**：适配器升级为 `responses-summary-v21-finish-reason-v1`；保留上游 `finish_reason/stop_reason`，`length/max_tokens` 映射为 `response.incomplete` + `incomplete_details.reason=max_output_tokens`，`content_filter` 映射为 `response.incomplete` + `content_filter`，`stop/tool_calls` 继续使用 `response.completed`。服务已重载，`/health` 返回 v21。
+- **验证**：隔离假上游回放 `finish_reason=length` 得到 `FINISH_REASON_PROBE=PASS`；既有 Kimi 工具名兼容回归 8 个用例通过。真实旧回合没有保存原始 `finish_reason`，所以不能事后断言它究竟是 `stop` 还是 `length`；v21 会在 sanitizer 日志记录 `chat stream finished` 的真实原因。
+- **新鲜 Kimi 证据**：v21 重载后同一类长任务的真实日志记录 `model=kimi-k3, finishReason=stop, status=completed, toolCount=0`；对应回复是“现在执行第 2 步……”的阶段说明。该次可以确认是 Kimi 主动正常结束回合，仍不能把它解释成 Host 超时或协议截断。
+- **边界**：这是主机级 Responses↔Chat 协议适配修复，只覆盖 Kimi/DeepSeek 适配链；不改提示词、不添加自动续跑/Watcher/第二工作流，也不改变 GPT 原生 Responses 链。只有拿到新的 Kimi 回合日志后，才能判断是否仍存在模型主动 `stop` 的任务连续性问题。
+
+## 2026-09-23 Kimi 工具结果契约缺失导致错误后停止
+
+- **用户证据**：截图对应的第二步命令返回 `Traceback`、`JSONDecodeError` 和 `exit=1`；Host rollout 中该工具项仍以 `status=completed` 记录，Kimi 随后只输出“先剥离 CRLF，再补引号”的修正说明，未继续发工具调用。
+- **根因**：`exec` 代码模式只把 `r.output` 展示给模型，丢弃了 `exit_code` 等机器结果；PowerShell 的可见错误因此没有稳定的工具结果状态，适配器只能被迫猜文本，Kimi 随后把修正说明当作正常 `stop` 回合。
+- **原始意图**：保留人类可读的 stdout/stderr，同时让下一轮模型知道本次工具是否成功；两种消费不能互相覆盖。
+- **架构修复**：适配器升级为 `responses-summary-v23-tool-result-contract-v1`。所有 `exec` 代码模式结果在原始可读输出后追加 `[CODEX_TOOL_RESULT_META]{ok,exit_code}` 信封；Kimi 只消费该机器契约，在末尾工具批次 `ok=false` 时要求下一轮选择工具。成功结果、GPT 原生链、DeepSeek 和其他模型不受影响，不创建自动重试循环。
+- **架构不变量**：工具结果必须同时满足“人类可读”和“机器可判定”；任务续接依据结构化工具状态，不依据 `Traceback`、`exit=1` 等显示文本猜测。旧历史没有信封时不伪造状态，等待新一轮结果契约生效。
+
+## 2026-09-21 无项目新会话创建日期目录报 ENOENT（projectlessWorkspaceRoot 错配与 Junction 跨盘拦截）
+
+- **用户现象**：在 Codex++ 开启新会话且不选择项目目录时报错：`ENOENT: no such file or directory, mkdir 'C:\Users\Administrator\AppData\Roaming\CodexPlusPlusProfile\Documents\Codex\2026-09-10\2026-09-21'`。
+- **决定性证据**：
+  1. `config.toml` 中 `[desktop].projectlessWorkspaceRoot` 原值为 `'C:\Users\Administrator\AppData\Roaming\CodexPlusPlusProfile\Documents\Codex\2026-09-10'`。
+  2. 源码审计 `app.asar` 发现，App 计算每日无项目工作区逻辑为 `dailyDir = path.join(workspaceRoot, today)`。
+  3. 当 `projectlessWorkspaceRoot` 被错选为某一天子目录（如 `2026-09-10`）时，App 会在跨天时计算出错误的层级嵌套路径：`.../2026-09-10/2026-09-21`。
+  4. 同时，App 发起创建调用走的是 C 盘别名路径，带有 MSIX 包身份的受限进程试图穿透 C 盘 Junction 跨卷到 D 盘创建新目录时，被 Windows 文件系统边界拒绝（报 `ENOENT`），这与历史 S34 §210 `visualizations` 踩过的跨卷老坑完全一致。
+- **真实根因**：
+  1. 界面操作误将具体日期子目录选为了"无项目任务默认目录"（根目录）；
+  2. 路径配置为 C 盘 Junction 别名而非 D 盘 canonical 真实物理路径，导致包身份进程跨卷创建受阻。
+- **修复动作**：
+  1. 在 Codex++ 设置或 `config.toml` 中将 `projectlessWorkspaceRoot` 纠正为规范物理根路径：`D:\CodexPlusPlusProfile\Documents\Codex`。
+  2. 新建会话触发 App 在该规范根路径下自动创建平级日期目录 `2026-09-21` 与子工作区 `new-chat`。
+- **防复发规则**：
+  1. `projectlessWorkspaceRoot` 必须始终保持为 D 盘 canonical 根路径（`D:\CodexPlusPlusProfile\Documents\Codex`），严禁使用 C 盘 Junction 别名，严禁选入任何具体日期子目录。
+  2. 启动预检脚本 `Invoke-CodexPlusPlusEnsureWorkspace.ps1` 负责保障该配置健康，防止配置漂移回 C 盘或日期子目录。
+
+## 2026-09-22 Codex++ 与普通 Codex 共存时 NTFS 非分页池上涨
+
+- **用户现象**：普通 Codex 长时间运行正常；启动 Codex++ 执行任务后，系统非分页池持续上涨并最终内存爆炸。用户要求保留 tweak、插件能力以及普通 Codex 与 Codex++ 同时隔离运行。
+- **汇聚后的事实**：
+  1. 重启后的空闲基线约为非分页池 0.539GB、可用内存约 19.9GB；没有 Codex++ 时普通 Codex 可继续工作。
+  2. Codex++ 走 C public Profile Junction 且与普通 Codex 共存时，非分页池在几十秒级持续上涨，主进程/网络进程 `IOOtherOperationsPerSec` 达到数万至约十万。
+  3. 关闭全部 tweak/preload 仍能复现，排除“删除 `session-path-normalizer` 就能根治”。
+  4. 同一台机把 Electron user-data-dir 改为物理 `D:\CodexPlusPlusProfile` 后，普通 Codex 保持运行：90 秒空闲非分页池增量约 0.7MB，真实读写任务约 0MB，OtherOps 约百次/秒；功能仍可启动并执行。
+- **真实根因**：触发器是 Electron/MSIX 进程经旧重解析入口访问主 user-data-dir 产生的 NTFS 文件操作洪流；它把 Windows `ntfs.sys` 的非分页池问题顶出来。tweak 的 GB 级 SQLite/JSONL 写入会放大触发量，但不是删除 tweak 才能解决的唯一根因。
+- **修复动作**：删除 C Profile/runtime/source 入口和 D 侧重解析目录；将启动器、所有 direct shortcut 和身份别名启动统一到 `--user-data-dir=D:\CodexPlusPlusProfile`；保持 `CODEX_HOME`、connector、marketplace、session 和 visualization 使用 D canonical；Codex++ 专用 Git 配置关闭 fsmonitor 并关闭 optional locks；修复 tweak stop 绑定和 normalizer 节流；普通 Codex 配置及进程不改。
+- **Watch 判定**：不需要新增常驻 Watch。原有 `Watch-CodexPlusPlusSessionPaths.ps1` 仅作为 one-shot maintenance 兼容文件名，`-Watch` 长驻模式退役；`active_session_risks.jsonl` 由 one-shot 入口预热，活动会话只记录风险，不删除历史。
+- **验证**：`Test-CodexPlusPlusProfileAliasBoundary.ps1`、`Test-CodexPlusPlusInjection.ps1`、`Protect-CodexPlusPlusGovernance.ps1`、`Test-CodexPlusPlusSessionPaths.ps1` 均通过；主进程命令行含物理 D 参数，普通 Codex 未被清理。旧 C 路径实验已经积累的内核池只能靠重启回收，不能把重启误写成根因修复。
+- **不变量**：普通 Codex 与 Codex++ 可同时存在；插件和 tweak 不删除；Codex++ mutable data 只落物理 D；生产 Electron user-data-dir 不得回到重解析入口；出现内存异常时先分离进程工作集、文件 I/O、内核池和服务重启证据，再决定是否需要一次性止血。
+- **与旧条目的关系**：本条只修正“共存时内核池/文件 I/O”根因；历史 `\\?\\` stale-path 规范化和 preload 保护仍然有效，不得因为本条而删除。
+
+## 2026-09-22 D-only 运行数据迁移完成
+
+- **迁移目标**：Codex++ 的 mutable data 只有一个物理 D 盘 owner。
+- **当前 canonical 路径**：
+  - CODEX_HOME：`D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex`
+  - runtime/tweaks/log/state：`D:\CodexPlusPlusProfile\AppData\Roaming\codex-plusplus`
+  - OpenCLI adapters：`D:\CodexPlusPlusProfile\.opencli\clis`
+  - Electron user-data-dir：`D:\CodexPlusPlusProfile`
+- **已退役路径**：所有 C 盘 Profile/runtime/source 入口及 D 侧重解析目录。
+- **保留的外部 owner**：Windows Store app mirror、普通 Codex、General OS Skill SSOT、外部 OpenClaw 状态；这些不属于 Codex++ mutable data，不能混入迁移删除。
+- **迁移证据**：app.asar loader userRoot 已指向 D runtime；13 个 tweak 从 D 目录发现并启动；session、SQLite、OpenCLI、窗口和治理回归通过；普通 Codex 配置哈希保持不变。
+- **防复发不变量**：新的 Codex++ writer/reader 必须直接使用 D canonical；发现任何 C runtime 或 D→C runtime Junction 时，先退回 S12 取证并停止扩大写入范围。
+
+## 2026-09-22 历史会话路径后遗症与清理
+
+- **现象**：迁移后新会话正常，旧会话恢复/归档报 failed to resolve rollout path；state DB 中旧记录仍保存 C alias、旧 D .codex 根和扩展前缀。
+- **根因**：迁移只移动了物理文件，未同步所有 threads.rollout_path；normalizer 原先只扫 archived=0，且只把路径包装成 extended form，遇到旧根不存在时直接跳过。
+- **修复**：normalizer 改为处理全部 rows、映射旧根到 D nested、保留普通路径；触发器只剥离扩展前缀。一次性维护将 1346 条记录归一并归档，随后按日期删除 1344 条历史记录及其投影/文件，保留当天 2 条新会话。
+- **证据**：Test-CodexPlusPlusSessionPaths.ps1、窗口回归、Isolation、Injection、TweakLinks、Governance 均通过；清理后 state DB 仅剩 2 条当天会话，旧 rollout 和历史 projection 已清空。
+- **同类残留**：windows-computer-use 的 MCP 合并器曾用 USERPROFILE/.codex 写配置，导致旧 D .codex 在重启时复活；运行时 MCP writer 已改为 CODEX_HOME nested config.toml，重启后旧目录保持不存在。
+- **清理边界**：历史会话内容和历史备份已按用户授权删除；当天 2 条新会话保留，普通 Codex、D-only runtime、插件和 General OS projection 未删除。
+
+## 2026-09-22 UI 残留会话列表的第二消费者
+
+- **现象**：state DB 已只剩当天新会话，界面仍显示旧项目会话并报 no rollout found。
+- **根因**：除了 Electron global state 的 app-server migration pendingThreadAssignmentIds、thread-project assignments 和 prompt-history 以外，Codex++ 自己的 `sqlite\codex-dev.db` 还保留 `local_thread_catalog` 投影；它们都是列表缓存，不是 rollout 文件。截图中的四个 AE-A3/乙女语音条目逐项命中了这层 local catalog，但 canonical state DB 已没有对应 thread。
+- **修复**：同一轮一次性维护先按 canonical state DB 动态读取当前 thread 集合，再把 `local_thread_catalog(host_id='local')` 中不存在的条目标记 `missing_candidate=1`，随后 scrub global state；不重建第二控制面、不删除项目本身，也不触碰 ChatGPT/remote host。修复脚本和回执：`D:\CodexPlusPlusMigration-20260922\reconcile_codexpp_local_catalog.py`、`local-catalog-reconcile.receipt.json`。
+- **不变量**：canonical state DB 是唯一会话事实；Electron global state 和 `codex-dev.db` 只能投影当前集合。任何清理脚本必须动态读取 canonical IDs，禁止硬编码旧 ID，否则新建会话会失去侧边栏绑定。
+
+## 2026-09-22 Windows sandbox 凭据后遗症
+
+- **现象**：D-only `.sandbox\setup_marker.json` 存在，但受控启动在 `sandbox cmd.exe` 预检返回 UAC 1223；直接 CLI 以普通环境运行通过，容易误判为 Codex++ 沙箱正常。
+- **根因**：`.sandbox-secrets\sandbox_users.json` 缺失；同机其他 Codex++ 子配置中的旧 DPAPI 文件因本机沙箱用户密码已轮换而不再匹配，启动 helper 会删除/拒绝它们。
+- **修复边界**：不复制旧加密 JSON、不关闭 elevated sandbox、不新增后台 watcher；由受控启动入口在用户可见 UAC 同意后重新生成当前凭据。直接 user-data-dir 启动只能证明窗口/loader 可用，不能替代受控入口的 sandbox 验收。
+- **最终闭环**：使用官方 `codex.exe sandbox setup --elevated --user Administrator --codex-home D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex` 完成一次提升 setup；`sandbox_users.json` 与 marker 均在位，D 环境 smoke 返回 `sandbox_exit=0`，随后正式 `Start-CodexPlusPlus.ps1 -Restart` 输出 `Windows sandbox ready`。中转配置仍为 `auth_mode=apikey`、provider `cm`、`127.0.0.1:15740/v1`。
+
+## 2026-09-22 归档优先规则
+
+- **现象**：历史列表残留与历史内容删除混在一起，容易把“界面不再显示”误报成“会话已归档”。
+- **规则**：先在 canonical state DB 归档 rollout 到 `archived_sessions` 并保留 renderer-safe 证据；只有用户明确授权删除时才 purge。原始 rollout 已经不存在的条目保持缺失归档投影，不伪造完整恢复。
+
+## 2026-09-22 迁移后入口残留收口
+
+- **发现**：迁移完成后，少量 launcher/审计脚本仍把 C Profile 当作历史兼容入口，并且 workspace preflight 仍从旧 `APPDATA` 推导日志和配置路径；这会让未来维护重新写回 C 盘。
+- **修复**：删除 C→D 兼容操作说明；将 profile contract、Start/Sync/Update、workspace preflight、session one-shot、Native Messaging restore 和 injection 检查统一为物理 D；workspace preflight 的配置文件改读 `D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex\config.toml`，日志改落 D runtime。
+- **验收**：PS7 parse、D-only 文档/物理边界、profile alias boundary、tweak links、injection、isolation、OpenCLI 和治理审计通过；C Profile/runtime/source 重新出现时应直接失败。
+- **最终冷启动复核**：受控 `Start-CodexPlusPlus.ps1 -Restart` 返回 `0`；窗口、loader、13 个 tweak、connector/OpenCLI 和 D user-data-dir 均通过，普通 Codex 未被清理；10 秒非分页池采样 `0.875GB -> 0.874GB`。
+
+## 2026-10-14 原生 Codex 与 Codex++ 隔离事实易混(cm gateway 不是全局默认)
+
+- **发现**:排查'原生 Codex 是否被故意带了一组隔离参数走 cm 中转',全量取证后发现原生 Codex 从未真正走过本地 cm 网关,只是残留两个没被消费的名字:config.toml 里的 [model_providers.cm] 段(base_url=https://chatgpt.com/backend-api,wire_api=responses,与官方同址)和用户环境变量里的空 CM_API_KEY。全配置没有任何 model_provider=cm 引用;误判来源是 CM_API_KEY 这个带中转名字的环境变量。
+- **根因**:cm 是 Codex++ 的中转线名,这两个残影却挂在原生 C 盘 HOME;原生 Codex 一直是 auth_mode=chatgpt 登录态账号线。
+- **固化不变量**:原生 Codex 与 Codex++ 的认证/配置线是互不占用的两套——原生 = C:\Users\Administrator\.codex + chatgpt 登录态;Codex++ = D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex + 本地 cm 网关 http://127.0.0.1:15740/v1。判定谁走哪条网关必须先取证(config.toml 的 provider 引用、auth.json 的 auth_mode、用户/机器/进程三处环境变量)。同名 provider 段无引用 = residual unused,先备份再删除;最终以 codex login status 实测而非配置文本做结论。
+- **证据**:备份 C:\Users\Administrator\.codex\config.toml.bak_cm_cleanup_20261014_130201;清后 codex --version 与 codex login status exit 0;auth.json auth_mode=chatgpt、tokens 存在、本地网关引用归零。

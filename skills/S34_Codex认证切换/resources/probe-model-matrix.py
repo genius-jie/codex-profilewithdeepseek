@@ -15,6 +15,7 @@
 退出码：0 = 全部通过；1 = 有失败。
 """
 import argparse
+import glob
 import io
 import json
 import os
@@ -24,12 +25,27 @@ import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-HOME_CANDIDATES = [
-    os.environ.get("CODEX_HOME"),
-    os.path.expanduser(r"~\.codex"),
-    r"D:\github\codex-profilewithdeepseek-data\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex",
-    r"D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex",
-]
+def discover_profiles():
+    """扫 Codex++ 隔离 profile 的常见落点；不写死盘符和用户名。"""
+    tails = (os.path.join("AppData", "Roaming", "Codex", ".codex"), ".codex")
+    found = []
+    drives = [c + ":" + os.sep for c in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(c + ":" + os.sep)]
+    for drive in drives:
+        for depth in ("*", os.path.join("*", "*"), os.path.join("*", "*", "*")):
+            for prof in glob.glob(os.path.join(drive, depth, "CodexPlusPlusProfile")):
+                for tail in tails:
+                    cand = os.path.join(prof, tail)
+                    if os.path.isdir(cand):
+                        found.append(cand)
+    return found
+
+
+def has_provider(home):
+    cfg = os.path.join(home, "config.toml") if home else None
+    if not cfg or not os.path.isfile(cfg):
+        return False
+    txt = io.open(cfg, encoding="utf-8").read()
+    return bool(re.search(r"^\s*model_provider\s*=", txt, re.M))
 EFFORT_ORDER = ("max", "ultra", "high", "xhigh", "medium", "low", "minimal")
 ALIAS_HINTS = ("openai/", "anthropic/", "xai/", "google/", "qwen/", "deepseek/", "glm/",
                "moonshotai/", "bytedance/", "minimax/", "typesafe/")
@@ -43,17 +59,17 @@ FAMILY_PREFIX = (("gpt-", "openai/"), ("claude-", "anthropic/"), ("grok-", "xai/
 def find_home(explicit):
     """按优先级找 CODEX_HOME；只有同时具备 config.toml 与 model_provider 的才算。"""
     skipped = []
-    for h in ([explicit] if explicit else []) + HOME_CANDIDATES:
-        cfg = os.path.join(h, "config.toml") if h else None
-        if not cfg or not os.path.isfile(cfg):
+    cheap = [explicit, os.environ.get("CODEX_HOME"), os.path.expanduser(r"~\.codex")]
+    for h in cheap + discover_profiles():
+        if h and h in skipped:
             continue
-        txt = io.open(cfg, encoding="utf-8").read()
-        if re.search(r'^\s*model_provider\s*=', txt, re.M):
+        if has_provider(h):
             return h
-        skipped.append(h)
+        if h and os.path.isfile(os.path.join(h, "config.toml")):
+            skipped.append(h)
     for h in skipped:
         print("跳过 %s：config.toml 没有 model_provider（多半是原生 Codex 的 home）" % h)
-    sys.exit("找不到带 model_provider 的 CODEX_HOME，用 --home 指定")
+    sys.exit("找不到带 model_provider 的 CODEX_HOME，用 --home 指定（就在 config.toml 所在目录）")
 
 
 def load_route(home):
@@ -93,6 +109,13 @@ def pick_effort(model, forced):
     return None
 
 
+def read_sse(raw):
+    """部分路由即使不传 stream 也回 SSE；看到文本增量或 completed 就算成功。"""
+    if b"output_text.delta" in raw or b'"response.completed"' in raw:
+        return "ok", ""
+    return "ok(无文本)", ""
+
+
 def call(url, key, model, effort, stream, budget=None):
     body = {"model": model, "input": "回答两个字：ok", "store": False}
     if stream:
@@ -109,14 +132,11 @@ def call(url, key, model, effort, stream, budget=None):
         req.add_header("Accept", "text/event-stream")
     try:
         with urllib.request.urlopen(req, timeout=180) as r:
-            if stream:
-                got = False
-                for raw in r:
-                    if b"output_text.delta" in raw:
-                        got = True
-                        break
-                return ("ok" if got else "ok(无文本)"), ""
-            d = json.loads(r.read())
+            raw = r.read()
+            head = raw.lstrip()[:16]
+            if stream or head.startswith(b"event:") or head.startswith(b"data:"):
+                return read_sse(raw)
+            d = json.loads(raw)
             if d.get("status") not in (None, "completed"):
                 return "status=" + str(d.get("status")), json.dumps(
                     d.get("incomplete_details"), ensure_ascii=False)
@@ -141,9 +161,11 @@ def main():
     prov, base, key = load_route(home)
     url = base + "/responses"
     models = load_models(home)
+    missing = []
     if args.models:
         want = [x.strip() for x in args.models.split(",") if x.strip()]
         by_slug = {m["slug"]: m for m in models}
+        missing = [s for s in want if s not in by_slug]
         models = [by_slug.get(s, {"slug": s}) for s in want]
 
     print("CODEX_HOME : %s" % home)
@@ -151,6 +173,8 @@ def main():
     print("密钥        : %s*** (len=%d)" % (key[:4], len(key)))
     print("模式        : %s  effort=%s" % ("stream" if args.stream else "json",
                                           args.effort or "各模型最高档"))
+    if missing:
+        print("注意        : %s 不在目录里，只按裸名试打（裸名无路由就换前缀）" % ", ".join(missing))
     print("-" * 96)
 
     def job(m):
@@ -172,7 +196,8 @@ def main():
         print("\n失败项与可能原因：")
         for slug, eff, st, msg in bad:
             hint = ""
-            if "model_not_found" in msg or "model_unavailable" in msg:
+            if any(x in msg for x in ("model_not_found", "model_unavailable", "model not found",
+                                      "not_found_error")):
                 if not any(slug.startswith(p) for p in ALIAS_HINTS):
                     pre = next((p for f, p in FAMILY_PREFIX if slug.startswith(f)), None)
                     hint = ("裸名无路由 → 试 %s%s" % (pre, slug)) if pre else \

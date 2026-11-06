@@ -84,12 +84,15 @@ Codex++ 切换链不能只改一个字段，但默认写入面始终限制在隔
 | **4. 孤儿窗口守卫** | `runtime/main.js` 顶层包含 `Orphan Instance Killer` 逻辑。 | 点击通知弹出无配置假窗口并报大红字 |
 | **5. 压缩阈值合理** | `model_catalog.json` 中的 `auto_compact_token_limit` 必须严格小于 `context_window`。 | 上下文永不压缩导致会话撑爆 |
 | **6. 矩阵实打验收** | 换机后必须运行一次 `resources/probe-model-matrix.py`，打通代表性模型（Claude Opus、Grok 4.7、GPT 6.1 等）。 | 隐藏死条目或参数不兼容上线即炸 |
+| **7. 真源顺序不可倒置** | 改 Skill 先改 git 仓库 `skills/<skill>/`，再同步到 `$CODEX_HOME\skills\`；换机后**以仓库覆盖运行时**，迁移包只当基线。 | 运行时和迁移包都落后于仓库，新机器把修好的坑重新踩一遍 |
 
 Codex++ 隔离环境的完整路径、启动脚本、权限、hooks、skills、自检和验收口径统一维护在：
 
 `D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex\skills\S34_Codex认证切换\resources\Codex++隔离配置基线.md`
 
-排查 Codex++ 时必须先读这份基线；不要凭普通 Codex 的 `C:\Users\Administrator\.codex` 状态推断 Codex++。
+排查 Codex++ 时必须先读这份基线；不要凭普通 Codex 的同名 home 状态推断 Codex++。上面这条是历史 profile 形态，**本机实际位置以 `config.toml` 所在目录为准**（Codex++ 的 `CODEX_HOME` 可能落在任意盘符的 `...\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex`）。
+
+**三份拷贝别搞混（2026-11-06 核对）**：仓库 `skills/`（git 版本化，唯一人工真源）→ 迁移包 `host-migration/payload/codex_plus_plus/skills/`（`new-computer.ps1` 安装用）→ 运行时 `$CODEX_HOME\skills\`（agent 真正读取）。三者的推进方向只有一条：仓库 → 迁移包 → 运行时，**反向覆盖等于回滚修复**。迁移包里 S34 仍是 2026-10-29 快照（token 绑定还是 `C:\Users\Administrator` / `D:\CodexPlusPlusProfile` 那台老机）；本机重跑 `export.py` 被 `claude_managed`（`C:\Program Files\ClaudeCode\managed-settings.json`）缺失阻断，所以换机第一步是 `git clone` 仓库并用仓库 `skills/` 覆盖运行时，不要指望迁移包自带新结论。
 
 ### Codex++ 运行时不可用分流（点不开 / 卡死 / 假死）
 

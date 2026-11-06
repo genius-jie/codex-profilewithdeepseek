@@ -287,7 +287,7 @@ API key 下的 401 或 `api key auth is not supported` 是认证边界，不得�
 | `7890` | 系统代理常见端口 | 只有用户明确要求系统 HTTP/SOCKS 代理时才讨论 |
 
 排查顺序：
-1. 先查 Codex++ `config.toml` 是否 `model_provider = "cm"`。
+1. 先查 Codex++ `config.toml` 是否 `model_provider = "cm_aggregate"`（2026-11-06 起；填 `"cm"` = 48760 直连，会丢 32000 输出预算与缓存，见《模型切换与换机自检》）。
 2. 再查 `cm.base_url` 是否为 `http://127.0.0.1:48760/v1`。
 3. 再查 Codex++ `auth.json` 是否存在、`auth_mode = "apikey"`，且 `OPENAI_API_KEY` 是否与 `config.toml` 的 `cm.api_key` 一致（只输出布尔结果和长度，不输出值）。
 4. 再查 `48760` 是否监听。
@@ -314,7 +314,7 @@ OVERALL: PASS - Codex and Codex++ are isolated as expected.
 - `normal skills`: skill links exist
 - `normal electron .codex`: points to `C:\Users\Administrator\.codex`
 - `plus auth`: exists, OPENAI_API_KEY matches config.toml api_key (CodexManager platform key)
-- `plus config`: exists, model_provider = "cm"
+- `plus config`: exists, model_provider = "cm_aggregate"（旧脚本输出 `cm` 视为过时口径）
 - `plus hooks`: exists
 - `plus skills`: isolation-profile local set; no parent-mirror count assertion
 - `plus electron .codex`: points to `D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex`
@@ -486,7 +486,7 @@ C:\Users\Administrator\.codex-plusplus-config\
    ```text
    D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex
    ```
-3. Codex++ `config.toml` 是否 `model_provider = "cm"`。
+3. Codex++ `config.toml` 是否 `model_provider = "cm_aggregate"`（适配器 15740；`"cm"` 是 48760 直连）。
 4. `cm.base_url` 是否为 `http://127.0.0.1:48760/v1`。
 5. Codex++ `auth.json` 是否存在，且 `OPENAI_API_KEY` 与 `config.toml` 的 `api_key` 是否一致。
 6. `127.0.0.1:48760` 是否监听。

@@ -24,6 +24,8 @@ birth_ceremony_date: 2026-05-14
 
 运行时可用性故障同样触发：“Codex++ 启动不了”、“点快捷方式没反应”、“Codex++ 卡住了”、“界面点不动”、“窗口出来了但没反应”、“启动一闪而过”。内存/文件系统故障也触发：“非分页池上涨”、“ntfs.sys”、“NtFC”、“内存爆炸”、“Codex++ 与普通 Codex 共存后卡死”、“OtherOps 飙升”。此类先按下节判据分流，**不要先改认证、代理配置，也不要先删除 tweak**。
 
+模型切换与多窗口类同样触发：“切到某个模型就报错”、“配置错误：未配置auth.json的OPENAI_API_KEY”、“invalid api key”、“grok / gpt 用不了但 Claude 正常”、“换机后模型不可用”、“新增模型入库”、“模型切换自检”、“莫名其妙生成两个窗口”、“双窗口并存”、“点击通知后报错”。这类先跳 “provider 命名对照与模型切换不变量”，查钥匙与 provider 指向，不要先改模型名或目录。
+
 ### 2026-09-22 最终 D 盘运行数据面（当前有效）
 
 Codex++ 的可变运行数据只有一个物理 owner：`D:\CodexPlusPlusProfile`。当前 canonical 路径如下：
@@ -55,6 +57,33 @@ Codex++ 切换链不能只改一个字段，但默认写入面始终限制在隔
 3. **协议格式**：隔离配置的代理 `cm` 节点不得残留会改变目标协议的错误 `wire_api` 值；按当前 provider 契约验证，而不是把普通 Codex 配置复制过来。
 
 普通 Codex 的 `C:\Users\Administrator\.codex\config.toml` / `auth.json` 只允许只读对照；只有用户明确点名“修改普通 Codex”时才进入其写入面。
+
+### 2026-11-06 provider 命名对照与模型切换不变量（实测口径）
+
+- **命名对照**：`cm` = `http://localhost:48760/v1`（CodexManager 本体）；`cm_aggregate` = `http://127.0.0.1:15740/v1`（消毒/翻译适配器）。本文历史条目里“代理模式 = cm”属于旧拓扑；**当前日常跑模型的 provider 是 `cm_aggregate`**。
+- **一把钥匙**：48760 只认 `api_keys` 里注册的那一把（`gk_` 前缀是 id，64 位 Hex 才是密钥真身）。`cm_aggregate.experimental_bearer_token` 必须填真身；填 `sk-` 链接 token 或 `gk_` id 都会得到 `403 invalid api key`（错题本 2026-11-06 第 1 条）。
+- **一个 provider**：`model_provider = "cm_aggregate"`。Claude 的输出预算注入与协议翻译、grok 的 reasoning 参数降级全在 15740 里；切到 `cm` 直连会同时丢掉这三样（输出卡 1024、`parameters are not supported`、缓存 0%）。
+- **阈值方向**：`auto_compact_token_limit` 必须严格小于 `context_window`；等于或超过等于永不压缩。目录 `model_catalog.json` 与 `Sync-CodexPlusPlusModelCatalog.ps1` 必须同改，否则同步时被写回。
+- **自检入口**：清单与 42 模型实测矩阵见 [模型切换与换机自检.md](resources/模型切换与换机自检.md)，可执行探针：[probe-model-matrix.py](resources/probe-model-matrix.py)（读当前 `CODEX_HOME`，逐个真打并给出失败归类）。凡换机、加 provider、加目录条目、切模型报错，先跑它再动手。
+
+### 2026-11-06 单实例与通知唤醒隔离不变量（Orphan Instance Guard）
+
+- **双窗口根因**：Chromium / Electron 的单实例互斥锁 `SingletonLock` 依附在 `userData` 路径上。主窗口带 `--user-data-dir=D:\...\CodexPlusPlusProfile`，锁在 D 盘；若用户点击系统 Toast 桌面通知，Windows 默认通过注册表拉起无参数的 `ChatGPT.exe type=click&tag=...`，锁在系统默认 `%APPDATA%\ChatGPT`。两者互不感知，导致双窗口共存，且新窗口因读取 C 盘原生未配置的 `C:\Users\<user>\.codex` 而全屏红字报错。
+- **守卫机制（Orphan Instance Killer）**：在 `runtime/main.js` 最顶层强行阻断：凡启动参数缺少 `--user-data-dir` 且带有 `type=click` 或 `tag=` 时，直接调用 `app.exit(0); process.exit(0);` 静默自毁，严禁拉起原生无配置窗口。
+- **换机必检**：换新电脑部署后，必须确保 `runtime/main.js` 及其构建源码包含该自毁守卫。同时建议在 Windows 系统设置中关闭 ChatGPT 的通知横幅。
+
+### 换机迁移与重新部署防坑自检清单（New Machine Checklist）
+
+换新机器或重新搭建 Codex++ 运行环境时，按此清单逐项对齐，严防重复踩坑：
+
+| 检查项 | 规程与标准值 | 违背后果 |
+|---|---|---|
+| **1. 物理目录唯一** | CODEX_HOME 统一指向独立物理盘符（如 `D:\CodexPlusPlusProfile\...`），严禁跨盘符 Junction 或依赖 C 盘。 | 读写混淆、认证污染 |
+| **2. Provider 归一** | 日常运行唯一 provider 为 `cm_aggregate`（端口 `15740` 适配器），严禁直连 `cm`（48760）。 | Claude 封顶 1024、参数报错 502、缓存 0% |
+| **3. 一把真钥匙** | `cm_aggregate.experimental_bearer_token` 必须与 `codexmanager.db` 的 `api_key_secrets` 记录的 64 位 Hex 密钥完全一致。严禁填 `sk-` 开头的远端 token 或 `gk_` 开头的 ID。 | 非 Claude 模型报 403 invalid api key |
+| **4. 孤儿窗口守卫** | `runtime/main.js` 顶层包含 `Orphan Instance Killer` 逻辑。 | 点击通知弹出无配置假窗口并报大红字 |
+| **5. 压缩阈值合理** | `model_catalog.json` 中的 `auto_compact_token_limit` 必须严格小于 `context_window`。 | 上下文永不压缩导致会话撑爆 |
+| **6. 矩阵实打验收** | 换机后必须运行一次 `resources/probe-model-matrix.py`，打通代表性模型（Claude Opus、Grok 4.7、GPT 6.1 等）。 | 隐藏死条目或参数不兼容上线即炸 |
 
 Codex++ 隔离环境的完整路径、启动脚本、权限、hooks、skills、自检和验收口径统一维护在：
 
@@ -216,7 +245,7 @@ OVERALL: PASS - Codex and Codex++ are isolated as expected.
 - `approval_policy = "never"` 对应 UI 的 `Never`。
 - `sandbox_mode = "danger-full-access"`。
 - `[windows] sandbox = "elevated"`。
-- Codex++ 仍应保持 `model_provider = "cm"`，普通 Codex 是否使用官方账号按用户明确指令决定。
+- Codex++ 仍应保持 `model_provider = "cm_aggregate"`（15740 适配器；`cm` 是 48760 直连，2026-11-06 起不再作为运行 provider），普通 Codex 是否使用官方账号按用户明确指令决定。
 
 如果桌面快捷方式要跑自检，目标应对齐：
 ```text
@@ -326,10 +355,10 @@ Stop hook 用于继续执行时，应优先输出当前 Codex 可接受的简洁
 
 ## 🛠️ 执行动作 1：切向【代理 API Key 直连模式 (CodexManager)】
 1. **注入代理指针**：
-   - 只在 Codex++ 隔离配置 `D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex\config.toml` 中注入 `model_provider = "cm"`。
+   - 只在 Codex++ 隔离配置 `D:\CodexPlusPlusProfile\AppData\Roaming\Codex\.codex\config.toml` 中注入 `model_provider = "cm_aggregate"`（指向适配器 15740）。
 2. **净化代理节点**：
-   - 检查 `[model_providers.cm]` 节点：当前默认走 `base_url = "http://127.0.0.1:15740/v1"` 的消毒代理适配器，此时 `wire_api = "responses"` 是**有意配置，必须保留**（见 §214）。
-   - **仅当** `cm.base_url` 直连 CodexManager `48760` 时，才抹除该节点下的 `wire_api = "responses"`（直连态不接受 responses 协议）。先判 base_url 端口再决定，不得一刀切抹除。
+   - 先判节点与端口：`[model_providers.cm_aggregate]` = `http://127.0.0.1:15740/v1`（适配器，日常运行用，`wire_api = "responses"` **必须保留**）；`[model_providers.cm]` = `http://localhost:48760/v1`（CodexManager 本体，只作适配器上游与钥匙来源）。
+   - **仅当** 某个 provider 的 `base_url` 直连 `48760` 且被选为 `model_provider` 时，才考虑抹除其 `wire_api = "responses"`（直连态不接受 responses 协议，且会失去 32000 输出预算与缓存）。先判 base_url 端口再决定，不得一刀切抹除。
 3. **同步 Codex++ 隔离认证镜像**：
    - 将隔离 `auth.json` 维护为 `auth_mode = "apikey"`，并让 `OPENAI_API_KEY` 与隔离 `config.toml` 的 `cm.api_key` 一致；不得写入官方 OAuth token，也不得删除、覆盖或迁移普通 Codex 的 `C:\Users\Administrator\.codex\auth.json`。
 4. **后续通知**：提示人类重开终端使可能存在的 `$env:CM_API_KEY` 及本地进程上下文立刻刷新。
